@@ -1,0 +1,58 @@
+#include "Defines.h"
+#include <stdlib.h>
+#include <OrbitBoosterPackDefs.h>
+#include <FillPat.h>
+#include <LaunchPad.h>
+#include <Wire.h>
+#include "Energia.h"
+
+String inData;
+int strRcvd = 0;
+static TwoWire orbitBoosterWire(0);
+
+void setup () {
+
+  //InitHFS();
+  Serial.begin(9600);
+  Serial.println("Enter a string...");
+  orbitBoosterWire.begin();
+  
+}
+
+void loop () {
+
+  while (Serial.available() > 0 && !strRcvd) {
+      
+    char received = Serial.read();
+    inData += received; 
+  
+    // Process string when new line character is recieved
+    if (received == '\n') {
+      
+      Serial.print("\nString received: ");
+      strRcvd = 1;
+  
+      // Work out length of data
+      int str_len = inData.length() - 1;
+      char str_bytes[str_len];
+        
+      // Split data into an array of char arrays, each one byte long
+      for(int j = 0; j < str_len; j++)
+        str_bytes[j] = inData[j];
+    
+      Serial.println();
+  
+      // Print processed string
+      for(int q = 0; q < str_len; q++)
+        Serial.print(str_bytes[q]);
+
+      Serial.println();
+
+      writeFile(str_bytes, str_len, 0, orbitBoosterWire);
+
+      readFile(str_len, 0, orbitBoosterWire);
+      
+    }
+  }
+}
+
