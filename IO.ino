@@ -8,7 +8,7 @@ void InitIO() {
 
 }
 
-void writeByte(int deviceaddress, int eeaddress, char data) 
+void writeByteEEPROM(int deviceaddress, int eeaddress, char data) 
 {
   orbitBoosterWire.beginTransmission(deviceaddress);
   orbitBoosterWire.write((int)(eeaddress >> 8));   // MSB
@@ -16,21 +16,28 @@ void writeByte(int deviceaddress, int eeaddress, char data)
   orbitBoosterWire.write(data);
   orbitBoosterWire.endTransmission();
  
-  delay(5);
+  delay(DELAY_TIME);
 }
 
-char readByte(int deviceaddress, int eeaddress) 
+char readByteEEPROM(int deviceaddress, int eeaddress) 
 {
   char rdata = 0xFF;
   
   orbitBoosterWire.beginTransmission(deviceaddress);
   orbitBoosterWire.write((int)(eeaddress >> 8));   // MSB
   orbitBoosterWire.write((int)(eeaddress & 0xFF)); // LSB
-  orbitBoosterWire.endTransmission();
+  orbitBoosterWire.endTransmission(0);
  
   orbitBoosterWire.requestFrom(deviceaddress, 1);
  
-  if(orbitBoosterWire.available()) rdata = orbitBoosterWire.read();
+  int byteGot = 0;
+
+  while (orbitBoosterWire.available() && !byteGot) {
+	  if(orbitBoosterWire.available()) {
+		  rdata = orbitBoosterWire.read();
+		  byteGot = 1;
+	  }
+  }
 
   return rdata;
 

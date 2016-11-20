@@ -43,7 +43,7 @@ void loop () {
       for(int q = 0; q < str_len; q++)
         Serial.print(str_bytes[q]);
 
-      Serial.println();
+      Serial.println("\n");
 
       writeFile(str_bytes, str_len, 0);
 
@@ -51,7 +51,7 @@ void loop () {
 
       //format();
 
-      //readFile(100, 0);
+      //readFile(0, 0);
       
     }
   }
