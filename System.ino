@@ -52,7 +52,7 @@ void readFile (int str_len, int startAddress) {
   
 }
 
-// Formats (Clears) EEPROM by overwriting all data with the null character
+// Formats (Clears) EEPROM by overwriting all data with the null character (takes approximately 3 minutes)
 void format () {
 
   double timeStart = millis()/1000.0;
