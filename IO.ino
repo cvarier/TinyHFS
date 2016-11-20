@@ -1,32 +1,36 @@
 #include <Wire.h>
 
+static TwoWire orbitBoosterWire(0);
+
 void InitIO() {
+
+  orbitBoosterWire.begin();
 
 }
 
-void writeByte(int deviceaddress, int eeaddress, char data, TwoWire wire) 
+void writeByte(int deviceaddress, int eeaddress, char data) 
 {
-  wire.beginTransmission(deviceaddress);
-  wire.write((int)(eeaddress >> 8));   // MSB
-  wire.write((int)(eeaddress & 0xFF)); // LSB
-  wire.write(data);
-  wire.endTransmission();
+  orbitBoosterWire.beginTransmission(deviceaddress);
+  orbitBoosterWire.write((int)(eeaddress >> 8));   // MSB
+  orbitBoosterWire.write((int)(eeaddress & 0xFF)); // LSB
+  orbitBoosterWire.write(data);
+  orbitBoosterWire.endTransmission();
  
   delay(5);
 }
 
-char readByte(int deviceaddress, int eeaddress, TwoWire wire) 
+char readByte(int deviceaddress, int eeaddress) 
 {
   char rdata = 0xFF;
   
-  wire.beginTransmission(deviceaddress);
-  wire.write((int)(eeaddress >> 8));   // MSB
-  wire.write((int)(eeaddress & 0xFF)); // LSB
-  wire.endTransmission();
+  orbitBoosterWire.beginTransmission(deviceaddress);
+  orbitBoosterWire.write((int)(eeaddress >> 8));   // MSB
+  orbitBoosterWire.write((int)(eeaddress & 0xFF)); // LSB
+  orbitBoosterWire.endTransmission();
  
-  wire.requestFrom(deviceaddress, 1);
+  orbitBoosterWire.requestFrom(deviceaddress, 1);
  
-  if(wire.available()) rdata = wire.read();
+  if(orbitBoosterWire.available()) rdata = orbitBoosterWire.read();
 
   return rdata;
 

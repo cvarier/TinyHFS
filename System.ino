@@ -4,20 +4,21 @@
 void InitHFS () {
 
   Serial.begin(9600);
- 
+  InitIO();
+   
 }
 
-void writeFile (char str_bytes[], int str_len, int startAddress, TwoWire wire) {
+void writeFile (char str_bytes[], int str_len, int startAddress) {
 
   double timeStart = millis()/1000.0;
   
   // Write data to EEPROM_ADDRESS_ADDRESS
   for(int i = startAddress; i < startAddress + str_len; i++) 
-    writeByte(EEPROM_ADDRESS, i, str_bytes[i - startAddress], wire);
+    writeByte(EEPROM_ADDRESS, i, str_bytes[i - startAddress]);
   
   double timeEnd = millis()/1000.0;
   
-  Serial.print("\nDATA WRITTEN - length: ");
+  Serial.print("\nDATA WRITE\nlength: ");
   Serial.print(str_len);
   Serial.println();
   Serial.println("FINISHED in ");
@@ -26,7 +27,7 @@ void writeFile (char str_bytes[], int str_len, int startAddress, TwoWire wire) {
   
 }
 
-void readFile (int str_len, int startAddress, TwoWire wire) { 
+void readFile (int str_len, int startAddress) { 
   
   unsigned char str_bytes[str_len];
 
@@ -36,7 +37,7 @@ void readFile (int str_len, int startAddress, TwoWire wire) {
 
   // Read the data byte-by-byte and store in str_bytes
   for(int i = startAddress; i < startAddress + str_len; i++)
-    str_bytes[i - startAddress] = readByte(EEPROM_ADDRESS, i, wire);
+    str_bytes[i - startAddress] = readByte(EEPROM_ADDRESS, i);
 
   double timeEnd = millis()/1000.0;
 
@@ -47,7 +48,24 @@ void readFile (int str_len, int startAddress, TwoWire wire) {
   Serial.println();
   Serial.println("FINISHED in ");
   Serial.print(timeEnd - timeStart);
-  Serial.print(" s\n");
+  Serial.print(" s\n\n");
   
+}
+
+// Formats (Clears) EEPROM by overwriting all data with the null character
+void format () {
+
+  double timeStart = millis()/1000.0;
+  Serial.println("DATA FORMAT");
+
+  for (int i = MIN_ADDRESS; i <= MAX_ADDRESS; i++)
+    writeByte(EEPROM_ADDRESS, i, 0);
+
+  double timeEnd = millis()/1000.0;
+
+  Serial.println("FINISHED in ");
+  Serial.print(timeEnd - timeStart);
+  Serial.print(" s\n\n");
+
 }
 

@@ -8,14 +8,11 @@
 
 String inData;
 int strRcvd = 0;
-static TwoWire orbitBoosterWire(0);
 
 void setup () {
 
-  //InitHFS();
-  Serial.begin(9600);
+  InitHFS();
   Serial.println("Enter a string...");
-  orbitBoosterWire.begin();
   
 }
 
@@ -48,9 +45,13 @@ void loop () {
 
       Serial.println();
 
-      writeFile(str_bytes, str_len, 0, orbitBoosterWire);
+      writeFile(str_bytes, str_len, 0);
 
-      readFile(str_len, 0, orbitBoosterWire);
+      readFile(str_len, 0);
+
+      //format();
+
+      //readFile(100, 0);
       
     }
   }
