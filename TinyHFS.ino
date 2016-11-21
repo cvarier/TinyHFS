@@ -6,6 +6,9 @@
 #include <Wire.h>
 #include "Energia.h"
 
+//git test
+
+
 String inData;
 int strRcvd = 0;
 
