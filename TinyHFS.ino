@@ -5,6 +5,7 @@
 #include <LaunchPad.h>
 #include <Wire.h>
 #include "Energia.h"
+#include "TinyHFS.h"
 
 String inData;
 int strRcvd = 0;
@@ -45,9 +46,11 @@ void loop () {
 
       Serial.println("\n");
 
-      writeFile(str_bytes, str_len, 0);
+//      clear
 
-      readFile(str_len, 0);
+      writeFile(str_bytes, str_len);
+
+      //readFile(str_len, 0);
 
       //format();
 
