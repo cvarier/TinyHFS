@@ -5,7 +5,6 @@
 #include <LaunchPad.h>
 #include <Wire.h>
 #include "Energia.h"
-#include "TinyHFS.h"
 
 String inData;
 int strRcvd = 0;
@@ -20,10 +19,11 @@ void setup () {
 void loop () {
 
   while (Serial.available() > 0 && !strRcvd) {
-      
+
     char received = Serial.read();
     inData += received;
   
+    if (received == '\n') {
     // Process string when escape key is pressed
       
       Serial.print("\nString received: ");
@@ -46,9 +46,7 @@ void loop () {
       Serial.println("\n");
 
       writeFile(str_bytes, str_len);
-
-      readFile(str_len, 0);
-
+      
       //format();
 
       //readFile(0, 0);
