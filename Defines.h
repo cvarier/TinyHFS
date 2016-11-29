@@ -6,8 +6,8 @@
 #define MAX_ADDRESS                         32767
 #define DELAY_TIME                          4
 
-#define FILE_NAME_SIZE						10
-#define FOLDER_NAME_SIZE					10
+#define FILE_NAME_SIZE						          10
+#define FOLDER_NAME_SIZE				          	10  //must be greater than 4
 
 #define FOLDER_PARTITION_LOWER_BOUND        1
 #define FOLDER_PARTITION_UPPER_BOUND        1000
