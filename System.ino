@@ -1,4 +1,4 @@
-#include "Defines.h"
+3#include "Defines.h"
 #include <Wire.h>
 
 const int fileHeaderPartitionSize = FILE_HEADER_PARTITION_UPPER_BOUND - FILE_HEADER_PARTITION_LOWER_BOUND + 1;
@@ -9,6 +9,7 @@ const int fileHeaderSize = FILE_NAME_SIZE + 6;
 short fileStartAddresses[maxFileHeaders] = {FILE_PARTITION_LOWER_BOUND};
 short fileEndAddresses[maxFileHeaders] = {FILE_PARTITION_LOWER_BOUND};
 short parentStartAddresses[maxFileHeaders] = {FOLDER_PARTITION_LOWER_BOUND};
+
 int fileArrayIndex = 0;
 int fileCount = 0;
 
@@ -397,3 +398,66 @@ short assembleShort(char highByte, char lowByte) {
 	return (short) (lowByte | highByte << 8);
 
 }
+
+
+
+void deleteFile(short startAddress, int fileSize) {
+
+  int fileHeaderAddress;
+
+  for (int i = startAddress; i < startAddress + fileSize; i++) {
+
+    writeByte(EEPROM_ADDRESS, i, 0);    // writes 0's to the files location
+
+  }
+
+  writeByte(EEPROM_ADDRESS, 0, --fileSize);
+
+  for(int i = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE; i < FILE_HEADER_PARTITION_UPPER_BOUND; i += FILE_NAME_SIZE + 6) {
+
+    if (startAddress == ((readBytes(EEPROM_ADDRESS, i) << 8) | readByte(EEPROM_ADDRESS, i + 1))) {
+  
+      fileHeaderAddress = i - FILE_NAME_SIZE;     // searches for the file's start address in the file headers. Once found, return the start address of the file header
+      break;
+      
+    }
+    
+    
+  }
+
+  for (int i = fileHeaderAddress; i < fileHeaderAddress + FILE_NAME_SIZE + 8; i++) {
+
+    writeByte(EEPROM_ADDRESS, i, 0);    //writes 0's to the file header's address
+
+  }
+
+
+}
+
+void deleteFolder(short folderStartAddress) {
+
+  int fileSize;
+  
+  for (int i = folderStartAddress; i < folderStartAddress + FOLDER_NAME_SIZE + 4; i++) {  //writes 0's to the filder 
+  
+    writeByte(EEPROM_ADDRESS, i, 0);
+  
+  }
+
+  for (int i = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE + 4; i < FILE_HEADER_PARTITION_UPPER_BOUND; i += FILE_NAME_SIZE + 6) {  // read the parent start address of the file header (15th and 16th address)
+
+    if ( folderStartAddress == (short)((readByte(EEPROM_ADDRESS, i) << 8) | readByte(EEPROM_ADDRESS, i + 1)) { //if parent start address = folder start address, delete file and header
+
+        fileSize = ((readByte(EEPROM_ADDRESS, i - 2) << 8) | readByte(EEPROM_ADDRESS, i - 1)) - ((readByte(EEPROM_ADDRESS, i - 4) << 8) | readByte(EEPROM_ADDRESS, i - 3)) + 1;
+
+        deleteFile((short)((readByte(EEPROM_ADDRESS, i) << 8) | readByte(EEPROM_ADDRESS, i + 1)), fileSize);
+
+    }
+
+        
+
+  }
+
+}
+}
+
