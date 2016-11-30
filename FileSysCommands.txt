@@ -1,0 +1,30 @@
+LIST OF COMMANDS
+
+HIGH PRIORITY
+
+file [filename] -> Creates new text file with the given file name. If file already exists, then prompt user if they wish to overwrite with y/n prompt.
+
+mkdir [directory_name] -> Creates new folder with the given directory name. If the folder already exists within the current directory, then throw an error.
+
+cd [foldername] -> Steps into the specified folder, down a level.
+
+up -> Steps up to the parent folder.
+
+read [filename] -> Displays the contents of the specified file.
+
+format -> Clears the entire file system
+
+
+LOW PRIORITY
+
+cpyfil [filename] [pathname] -> Copies the specified file to the specified path. If file already exists, then prompt user if they wish to overwrite with y/n prompt.
+
+cpyfol [foldername] [pathname] -> Copies the specified folder to the specified path. If folder already exists, then prompt user if they wish to overwrite with y/n prompt.
+
+mvfil [filename] [pathname] -> Moves the specified file to the specified path. If file already exists, then prompt user if they wish to overwrite with y/n prompt.
+
+mvfol [foldername] [pathname] -> Moves the specified folder to the specified path. If folder already exists, then prompt user if they wish to overwrite with y/n prompt.
+
+
+
+
