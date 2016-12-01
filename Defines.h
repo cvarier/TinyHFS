@@ -67,6 +67,7 @@ const char folder_delete[]   =   "delfol";
 
 const char print_dir[]       =   "pwd";
 const char format_sys[]      =   "format";
+const char print_help[]      =   "help";
 
 /***************************
  *      Miscellaneous      *
