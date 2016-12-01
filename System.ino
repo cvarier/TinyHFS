@@ -18,6 +18,8 @@ void InitHFS() {
      * This will be referred to as the file count byte.
      */
     fileCount = (int) readByte(EEPROM_ADDRESS, 0);
+    Serial.println("fileCount:");
+    Serial.println(fileCount);
 
     /* The following code will obtain the start and end addresses of all files and their
      * corresponding parent folders
@@ -60,6 +62,9 @@ void writeFile(char file_text[], short file_size, short parentStartAddress, char
     double timeStart = millis() / 1000.0;
 
     short fileStartAddress = (fileCount == 0 ? FILE_PARTITION_LOWER_BOUND : fileEndAddresses[fileCount - 1] + 1);
+    for (int i = 0; i <fileCount ; i++)
+        Serial.println(fileStartAddresses[i]);
+    Serial.println(fileCount);
     Serial.println("\nFILE WRITE INITIATED");
 
     if (fileStartAddress + file_size - 1 > FILE_PARTITION_UPPER_BOUND
@@ -92,7 +97,7 @@ void writeFile(char file_text[], short file_size, short parentStartAddress, char
     fileStartAddresses[fileCount] = fileStartAddress;
     fileEndAddresses[fileCount++] = fileStartAddress + file_size - 1;
 
-    writeByte(EEPROM_ADDRESS, 0, ++fileCount);
+    writeByte(EEPROM_ADDRESS, 0, (char)(++fileCount));
 
 }
 
@@ -171,6 +176,8 @@ void createFolder(short parentStartAddress) {
     // Write start address of parent folder
     writeByte(EEPROM_ADDRESS, folderStartAddress + FOLDER_NAME_SIZE + 2, parentStartAddressHigh);
     writeByte(EEPROM_ADDRESS, folderStartAddress + FOLDER_NAME_SIZE + 3, parentStartAddressLow);
+
+    Serial.println("Folder created");
 
 }
 
@@ -282,7 +289,7 @@ void deleteFile(short fileHeaderStartAddress) {
 
     fileStartAddresses[fileCount - 1] = 0;
 
-    writeByte(EEPROM_ADDRESS, 0, (char) --fileCount);
+    writeByte(EEPROM_ADDRESS, 0, (char)(--fileCount));
 
     // Overwrite the file header with null characters
     for (int i = fileHeaderStartAddress; i < fileHeaderStartAddress + fileHeaderSize; i++)
@@ -337,10 +344,12 @@ void format() {
     double timeStart = millis() / 1000.0;
     Serial.println("\nEEPROM FORMAT INITIATED");
 
-    for (int i = FOLDER_PARTITION_LOWER_BOUND; i <= FILE_HEADER_PARTITION_UPPER_BOUND; i++)
+    for (int i = MIN_ADDRESS; i <= MAX_ADDRESS; i++)
         writeByte(EEPROM_ADDRESS, i, 0);
 
     double timeEnd = millis() / 1000.0;
+
+    InitHFS();
 
     Serial.print("\nEEPROM FORMATTED\n\n");
     Serial.println("FINISHED IN ");
@@ -418,8 +427,7 @@ char *getName(int maxNameSize) {
 
 void organizeMemory(short startAddress, short endAddress) {
 
-    qsort(fileStartAddresses, fileCount, sizeof(short), compVals);
-    qsort(fileEndAddresses, fileCount, sizeof(short), compVals);
+    
 
     int isOccupied = 1;
     int count = 0;

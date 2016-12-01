@@ -57,23 +57,27 @@ void stepOut() {
  * @Param folderStartAddress the start address of the current folder
  */
 void displayFolderContent() {
-
+/*
     /*
      * Obtain and print the folders that belong to the current folder.
      */
-
+    updateCurrentDirectory(currentFolderStartAddress);
+    
     int isPrinted = 0;
 
     for (int i = 0; i < maxFolders; i++) {
 
+      if (currentContainedFolderStartAddresses[i] != 0) {
+        
         for (int j = 0; j < FOLDER_NAME_SIZE; j++) {
 
-            if (currentContainedFolderStartAddresses[i] != '\0') {
+            
                 Serial.print((char) readByte(EEPROM_ADDRESS, currentContainedFolderStartAddresses[i] + j));
-                isPrinted = 1;
-            }
-
+                
         }
+        isPrinted = 1;
+    
+     }
 
         if (isPrinted)
             Serial.println();
@@ -90,12 +94,16 @@ void displayFolderContent() {
 
         for (int j = 0; j < FILE_NAME_SIZE; j++) {
 
-            if (currentContainedFileHeaderStartAddresses[i] != '\0')
+            if (currentContainedFileHeaderStartAddresses[i] != 0){
                 Serial.print((char) readByte(EEPROM_ADDRESS, currentContainedFileHeaderStartAddresses[i] + j));
-
+                isPrinted = 1;
+            }
         }
+        
+        if (isPrinted)
+          Serial.println(".txt");
 
-        Serial.println(".txt");
+        isPrinted = 0;
     }
 
 }
@@ -254,9 +262,17 @@ void updateCurrentDirectory(short parentStartAddress) {
         short currStartAddressHigh = readByte(EEPROM_ADDRESS, i);
         short currStartAddressLow = readByte(EEPROM_ADDRESS, i + 1);
         short currStartAddress = assembleShort(currStartAddressHigh, currStartAddressLow);
-
+        Serial.println(i);
+        Serial.println(currStartAddress);
+        Serial.println(assembleShort(readByte(EEPROM_ADDRESS, 13), readByte(EEPROM_ADDRESS, 14)));
         if (currStartAddress == parentStartAddress) {
-            currentContainedFolderStartAddresses[folderIndex] = currStartAddress;
+            currentContainedFolderStartAddresses[folderIndex] = i - FOLDER_NAME_SIZE - 2;
+            Serial.println("folder start addresses");
+            
+            if (currentContainedFolderStartAddresses[folderIndex] != 0) {
+                
+                Serial.println(currentContainedFolderStartAddresses[folderIndex]);
+            }
             folderIndex++;
         }
 
@@ -265,14 +281,20 @@ void updateCurrentDirectory(short parentStartAddress) {
     int fileHeaderIndex = 0;
 
     // Update file headers
-    for (int i = FILE_HEADER_PARTITION_LOWER_BOUND; i <= FILE_HEADER_PARTITION_UPPER_BOUND; i += fileHeaderSize) {
+    for (int i = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE + 4; i <= FILE_HEADER_PARTITION_UPPER_BOUND; i += fileHeaderSize) {
 
         short currStartAddressHigh = readByte(EEPROM_ADDRESS, i);
         short currStartAddressLow = readByte(EEPROM_ADDRESS, i + 1);
         short currStartAddress = assembleShort(currStartAddressHigh, currStartAddressLow);
 
         if (currStartAddress == parentStartAddress) {
-            currentContainedFileHeaderStartAddresses[fileHeaderIndex] = currStartAddress;
+            currentContainedFileHeaderStartAddresses[fileHeaderIndex] = i - FILE_NAME_SIZE - 4;
+            Serial.println("file start addresses");
+            if (currentContainedFileHeaderStartAddresses != 0) {
+                
+            
+            Serial.println(currentContainedFileHeaderStartAddresses[fileHeaderIndex]);
+            }
             fileHeaderIndex++;
         }
 
@@ -463,11 +485,11 @@ void acceptFile(char *fileName) {
     
                 Serial.println();
     
-                short currentParentAddressHigh = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 2);
+                /*short currentParentAddressHigh = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 2);
                 short currentParentAddressLow = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 3);
-                short currentParentAddress = assembleShort(currentParentAddressHigh, currentParentAddressLow);
+                short currentParentAddress = assembleShort(currentParentAddressHigh, currentParentAddressLow);*/
     
-                writeFile(str_bytes, str_len, currentParentAddress, fileName);
+                writeFile(str_bytes, str_len, currentFolderStartAddress, fileName);
 
                 return;
     
