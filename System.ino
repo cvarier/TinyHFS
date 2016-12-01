@@ -52,7 +52,7 @@ void InitHFS() {
 
 }
 
-void writeFile(char file_text[], short file_size, short parentStartAddress) {
+void writeFile(char file_text[], short file_size, short parentStartAddress, char *fileName) {
 
     double timeStart = millis() / 1000.0;
 
@@ -60,7 +60,7 @@ void writeFile(char file_text[], short file_size, short parentStartAddress) {
     Serial.println("\nFILE WRITE INITIATED");
 
     if (fileStartAddress + file_size - 1 > FILE_PARTITION_UPPER_BOUND
-        || !createFileHeader(fileStartAddress, parentStartAddress, file_size)) {
+        || !createFileHeader(fileStartAddress, parentStartAddress, file_size, fileName)) {
 
         Serial.println("\nERROR: File space full; cannot save file");
 
@@ -172,7 +172,7 @@ void createFolder(short parentStartAddress) {
 }
 
 // Returns 1 if successful, else 0
-int createFileHeader(short fileStartAddress, short parentStartAddress, short fileSize) {
+int createFileHeader(short fileStartAddress, short parentStartAddress, short fileSize, char *fileName) {
 
     short fileEndAddress = fileStartAddress + fileSize - 1;
 
@@ -186,8 +186,6 @@ int createFileHeader(short fileStartAddress, short parentStartAddress, short fil
 
     short fileHeaderStartAddress = 0;
     int spaceCount = 0;
-
-    char *fileName = getName(FILE_NAME_SIZE);
 
     for (int j = FILE_HEADER_PARTITION_LOWER_BOUND; j <= FILE_HEADER_PARTITION_UPPER_BOUND; j++) {
 
@@ -231,7 +229,6 @@ int createFileHeader(short fileStartAddress, short parentStartAddress, short fil
     writeByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE + 4, parentStartAddressHigh);
     writeByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE + 5, parentStartAddressLow);
 
-    free(fileName);
     return 1;
 
 }
@@ -248,23 +245,28 @@ void moveFile() {
 
 }
 
-void deleteFile(short fileStartAddress, int fileSize) {
+void deleteFile(short fileHeaderStartAddress) {
 
-    int fileEndAddress = fileStartAddress + fileSize - 1;
+    short fileAddressesLocInHeader = fileHeaderStartAddress + FILE_NAME_SIZE;
 
-    // Overwrite the file with 0's
+    short fileStartAddressHighByte = getHighByte(readByte(EEPROM_ADDRESS, fileAddressesLocInHeader));
+    short fileStartAddressLowByte  = getLowByte(readByte(EEPROM_ADDRESS, fileAddressesLocInHeader + 1));
+    short fileStartAddress = assembleShort(fileStartAddressHighByte, fileStartAddressLowByte);
+
+    short fileEndAddressHighByte  = getLowByte(readByte(EEPROM_ADDRESS, fileAddressesLocInHeader + 2));
+    short fileEndAddressLowByte  = getLowByte(readByte(EEPROM_ADDRESS, fileAddressesLocInHeader + 3));
+    short fileEndAddress = assembleShort(fileEndAddressHighByte, fileEndAddressLowByte);
+
     for (int i = fileStartAddress; i <= fileEndAddress; i++)
         writeByte(EEPROM_ADDRESS, i, 0);
-
-    // Decrease the file count byte by one
-    writeByte(EEPROM_ADDRESS, 0, --fileCount);
-
-    int mustShift = 0;
 
     /*
      * Check if the deleted file is located in the middle of the file array. If it is, then shift all the remaining
      * files over by one.
      */
+
+    int mustShift = 0;
+
     for (int i = 0; i < fileCount; i++) {
 
         if (mustShift)
@@ -274,32 +276,15 @@ void deleteFile(short fileStartAddress, int fileSize) {
             mustShift = 1;
 
     }
-    /*
-     * Scan the file start address attribute of all the file headers (11th and 12th addresses),
-     * then delete the file header whose file start address corresponds to the file
-     * being deleted.
-     */
-    for (int i = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE; i <= FILE_HEADER_PARTITION_UPPER_BOUND; i +=
-        fileHeaderSize) {
 
-        char fileStartAddressCurrHigh = readByte(EEPROM_ADDRESS, i);
-        char fileStartAddressCurrLow = readByte(EEPROM_ADDRESS, i + 1);
-        short fileStartAddressCurr = assembleShort(fileStartAddressCurrHigh, fileStartAddressCurrLow);
+    fileStartAddresses[fileCount - 1] = 0;
 
-        if (fileStartAddress == fileStartAddressCurr) {
+    writeByte(EEPROM_ADDRESS, 0, (char) --fileCount);
 
-            short fileHeaderStartAddress = i - FILE_NAME_SIZE;
-            short fileHeaderEndAddress = i + 5;
+    // Overwrite the file header with null characters
+    for (int i = fileHeaderStartAddress; i < fileHeaderStartAddress + fileHeaderSize; i++)
+        writeByte(EEPROM_ADDRESS, i, 0);
 
-            // Overwrite the file header with 0's
-            for (int i = fileHeaderStartAddress; i <= fileHeaderEndAddress; i++)
-                writeByte(EEPROM_ADDRESS, i, 0);
-
-            break;
-
-        }
-
-    }
 
 }
 
@@ -315,7 +300,7 @@ void deleteFolder(short folderStartAddress) {
 
     }
 
-    // Overwrite the folder with 0's
+    // Overwrite the folder with null characters
     for (int i = folderStartAddress; i <= folderEndAddress; i++)
         writeByte(EEPROM_ADDRESS, i, 0);
 
@@ -333,17 +318,9 @@ void deleteFolder(short folderStartAddress) {
 
         if (folderStartAddress == parentStartAddressCurr) {
 
-            char fileStartAddressCurrHigh = readByte(EEPROM_ADDRESS, i - 4);
-            char fileStartAddressCurrLow = readByte(EEPROM_ADDRESS, i - 3);
-            short fileStartAddressCurr = assembleShort(fileStartAddressCurrHigh, fileStartAddressCurrLow);
+            short fileHeaderStartAddressCurr = i - FILE_NAME_SIZE - 4;
 
-            char fileEndAddressCurrHigh = readByte(EEPROM_ADDRESS, i - 2);
-            char fileEndAddressCurrLow = readByte(EEPROM_ADDRESS, i - 1);
-            short fileEndAddressCurr = assembleShort(fileEndAddressCurrHigh, fileEndAddressCurrLow);
-
-            short fileSize = fileEndAddressCurr - fileStartAddressCurr + 1;
-
-            deleteFile(fileStartAddressCurr, fileSize);
+            deleteFile(fileHeaderStartAddressCurr);
 
         }
 
@@ -455,7 +432,6 @@ void organizeMemory(short startAddress, short endAddress) {
         startAddress++;
 
     }
-
 
     fileStartAddresses[fileArrayIndex] -= count;
     fileEndAddresses[fileArrayIndex] -= count;

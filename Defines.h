@@ -68,4 +68,10 @@ const char folder_delete[]   =   "delfol";
 const char print_dir[]       =   "pwd";
 const char format_sys[]      =   "format";
 
+/***************************
+ *      Miscellaneous      *
+ * *************************
+ */
+const char fileTerminator    =   '`';
+
 #endif
