@@ -2,6 +2,8 @@ LIST OF COMMANDS
 
 HIGH PRIORITY
 
+ls -> Prints the current folder's contents
+
 file [filename] -> Creates new text file with the given file name. If file already exists, then throw an error.
 
 mkdir [directory_name] -> Creates new folder with the given directory name. If the folder already exists within the current directory, then throw an error.

@@ -45,6 +45,9 @@ void InitHFS() {
 
     }
 
+    qsort(fileStartAddresses, fileCount, sizeof(short), compVals);
+    qsort(fileEndAddresses, fileCount, sizeof(short), compVals);
+
     updateCurrentDirectory(ROOT_ADDRESS);
 
     Serial.println("\nWelcome to your TinyHFS!");
@@ -84,7 +87,7 @@ void writeFile(char file_text[], short file_size, short parentStartAddress, char
     Serial.print(" BYTES\n");
     Serial.println("FINISHED IN ");
     Serial.print(timeEnd - timeStart);
-    Serial.print(" s\n\n");
+    Serial.print(" s\n");
 
     fileStartAddresses[fileCount] = fileStartAddress;
     fileEndAddresses[fileCount++] = fileStartAddress + file_size - 1;
@@ -332,7 +335,7 @@ void deleteFolder(short folderStartAddress) {
 void format() {
 
     double timeStart = millis() / 1000.0;
-    Serial.println("EEPROM FORMAT INITIATED");
+    Serial.println("\nEEPROM FORMAT INITIATED");
 
     for (int i = FOLDER_PARTITION_LOWER_BOUND; i <= FILE_HEADER_PARTITION_UPPER_BOUND; i++)
         writeByte(EEPROM_ADDRESS, i, 0);
@@ -342,7 +345,7 @@ void format() {
     Serial.print("\nEEPROM FORMATTED\n\n");
     Serial.println("FINISHED IN ");
     Serial.print(timeEnd - timeStart);
-    Serial.print(" s\n\n");
+    Serial.print(" s\n");
 
 }
 
@@ -359,35 +362,39 @@ char *getName(int maxNameSize) {
 
     Serial.flush();
 
-    while (Serial.available() > 0 && !strRcvd) {
-
-        received = Serial.read();
-        inData += received;
-
-        // Process string when new line character is received
-        if (received == '\n') {
-
-            strRcvd = 1;
-
-            // Work out length of string
-            int str_len = inData.length() - 1;
-
-            if (str_len > maxNameSize) {
-
-                Serial.print("ERROR: Name too long; please try again.");
-                return getName(maxNameSize);
-
+    while (1) {
+      
+        while (Serial.available() > 0 && !strRcvd) {
+    
+            received = Serial.read();
+            inData += received;
+    
+            // Process string when new line character is received
+            if (received == '\n') {
+    
+                strRcvd = 1;
+    
+                // Work out length of string
+                int str_len = inData.length() - 1;
+    
+                if (str_len > maxNameSize) {
+    
+                    Serial.print("ERROR: Name too long; please try again.");
+                    return getName(maxNameSize);
+    
+                }
+    
+                // Split string into an array of char arrays, each one byte long
+                for (int j = 0; j < str_len; j++)
+                    name[j] = inData[j];
+    
             }
 
-            // Split string into an array of char arrays, each one byte long
-            for (int j = 0; j < str_len; j++)
-                name[j] = inData[j];
-
+            return name;
+    
         }
-
+    
     }
-
-    return name;
 
 }
 

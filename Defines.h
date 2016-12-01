@@ -12,8 +12,8 @@
  *    Element Name Sizes   *
  * *************************
  */
-#define FILE_NAME_SIZE						10
-#define FOLDER_NAME_SIZE					10
+#define FILE_NAME_SIZE						          10
+#define FOLDER_NAME_SIZE					          10
 
 /***************************
  *     Partition Bounds    *
@@ -65,6 +65,7 @@ const char folder_copy[]     =   "cpyfol";
 const char folder_move[]     =   "mvfol";
 const char folder_delete[]   =   "delfol";
 
+const char print_contents[]  =   "ls";
 const char print_dir[]       =   "pwd";
 const char format_sys[]      =   "format";
 const char print_help[]      =   "help";
@@ -73,6 +74,6 @@ const char print_help[]      =   "help";
  *      Miscellaneous      *
  * *************************
  */
-const char fileTerminator    =   '`';
+const char fileTerminator    =   '~';
 
 #endif
