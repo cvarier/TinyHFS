@@ -8,6 +8,8 @@ void InitIO() {
 
 }
 
+// Functions for writing and reading a single byte to and from the eeprom
+
 void writeByte(int deviceaddress, int eeaddress, char data) 
 {
   orbitBoosterWire.beginTransmission(deviceaddress);

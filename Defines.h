@@ -6,7 +6,8 @@
 #define MIN_ADDRESS                         0
 #define MAX_ADDRESS                         32767
 #define DELAY_TIME                          4
-#define ROOT_ADDRESS                        32768
+#define ROOT_ADDRESS                        32767
+
 
 /***************************
  *    Element Name Sizes   *
@@ -14,6 +15,9 @@
  */
 #define FILE_NAME_SIZE						          10
 #define FOLDER_NAME_SIZE					          10
+#define FILE_NAME_SIZE						          10
+#define FOLDER_NAME_SIZE				          	10  //must be greater than 4
+
 
 /***************************
  *     Partition Bounds    *
@@ -24,7 +28,7 @@
 #define FILE_PARTITION_LOWER_BOUND          1001
 #define FILE_PARTITION_UPPER_BOUND          28768
 #define FILE_HEADER_PARTITION_LOWER_BOUND   28769
-#define FILE_HEADER_PARTITION_UPPER_BOUND   32767
+#define FILE_HEADER_PARTITION_UPPER_BOUND   32766
 
 /***************************
  *     Partition Sizes     *
