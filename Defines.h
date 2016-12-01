@@ -52,17 +52,20 @@ const int maxFolders = folderPartitionSize / (folderSize);
  *      Command Names      *
  * *************************
  */
-const String file_write      = "file";
-const String file_copy       = "cpyfile";
-const String file_move       = "mvfile";
-const String file_read       = "read";
+const char file_write[]      =   "file";
+const char file_copy[]       =   "cpyfile";
+const char file_move[]       =   "mvfile";
+const char file_read[]       =   "read";
+const char file_delete[]     =   "delfile";
 
-const String folder_create   = "mkdir";
-const String folder_step_in  = "in";
-const String folder_step_out = "out";
-const String folder_copy     = "cpyfol";
-const String folder_move     = "mvfol";
+const char folder_create[]   =   "mkdir";
+const char folder_step_in[]  =   "in";
+const char folder_step_out[] =   "out";
+const char folder_copy[]     =   "cpyfol";
+const char folder_move[]     =   "mvfol";
+const char folder_delete[]   =   "delfol";
 
-const String format          = "format";
+const char print_dir[]       =   "pwd";
+const char format_sys[]      =   "format";
 
 #endif

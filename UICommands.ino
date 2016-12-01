@@ -6,7 +6,7 @@
 
 short currentFolderStartAddress = ROOT_ADDRESS;
 short currentContainedFolderStartAddresses[maxFolders] = { 0 };
-short currentContainedFileStartAddresses[maxFileHeaders] = { 0 };
+short currentContainedFileHeaderStartAddresses[maxFileHeaders] = { 0 };
 
 /**
  * Function: stepIn
@@ -16,48 +16,10 @@ short currentContainedFileStartAddresses[maxFileHeaders] = { 0 };
  *
  * @Param folderName the name of the folder to step into
  */
-void stepIn(char *folderName) {
+void stepIn(short folderStartAddress) {
 
-    // Update the contents of the contained folder and file arrays
-
+    currentFolderStartAddress = folderStartAddress;
     updateCurrentDirectory(currentFolderStartAddress);
-
-    int matches = 0;
-    int index = 1;
-
-    // TODO: FIX: what if folders have same name in hierarchy: IF same level, must throw error
-    //                                                       ELSE must pass by address instead
-    //                   SOLUTION: obtain arrays of all folders and files in current directory
-
-    for (short i = FOLDER_PARTITION_LOWER_BOUND; i <= FOLDER_PARTITION_UPPER_BOUND; i += folderSize) {
-
-        if (readByte(EEPROM_ADDRESS, i) == folderName[0]) {
-
-            matches = 1;
-
-            for (int j = i + 1; j < i + FOLDER_NAME_SIZE; j++) {
-
-                if (!(readByte(EEPROM_ADDRESS, j) == folderName[index])) {
-
-                    matches = 0;
-                    break;
-
-                }
-
-                index++;
-
-            }
-
-            if (matches) {
-
-                displayFolderContents(i);
-                currentFolderStartAddress = i;
-
-            }
-
-        }
-
-    }
 
 }
 
@@ -69,17 +31,21 @@ void stepIn(char *folderName) {
  */
 void stepOut() {
 
-    char parentFolderName[FOLDER_NAME_SIZE];
-    int index = 0;
+    short parentFolderStartAddressHigh = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 2);
+    short parentFolderStartAddressLow = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 3);
+    short parentFolderStartAddress = assembleShort(parentFolderStartAddressHigh, parentFolderStartAddressLow);
 
-    short parentFolderAddress = (readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 2) << 8)
-        | readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 2);
+    if (parentFolderStartAddress == ROOT_ADDRESS) {
 
-    for (int i = parentFolderAddress; i < parentFolderAddress + FOLDER_NAME_SIZE; i++)
-        parentFolderName[index++] = readByte(EEPROM_ADDRESS, i);
+        Serial.println("ERROR: Cannot step out of root");
+        return;
 
-    displayFolderContents(parentFolderAddress);
-    currentFolderStartAddress = parentFolderAddress;
+    }
+
+    updateCurrentDirectory(parentFolderStartAddress);
+
+    displayFolderContent();
+    currentFolderStartAddress = parentFolderStartAddress;
 
 }
 
@@ -90,52 +56,39 @@ void stepOut() {
  *
  * @Param folderStartAddress the start address of the current folder
  */
-void displayFolderContents(short folderStartAddress) {
-
-    short startParentAddress;
-    short fileParentAddress;
+void displayFolderContent () {
 
     /*
-     * Obtain and print the folders that belong to the parent folder of the current folder.
+     * Obtain and print the folders that belong to the current folder.
      */
-    for (int i = FOLDER_PARTITION_LOWER_BOUND + 1;
-        i <= FOLDER_PARTITION_UPPER_BOUND;
-        i += FOLDER_NAME_SIZE + 4) {
 
-        startParentAddress = (readByte(EEPROM_ADDRESS, i) << 8) | readByte(EEPROM_ADDRESS, i + 1);
+    for (int i = 0; i < maxFolders; i++) {
 
-        if (startParentAddress == folderStartAddress) {
+        for(int j = 0; j < FOLDER_NAME_SIZE; j++) {
 
-            for (int j = i - (FOLDER_NAME_SIZE + 2); j < i - 2; j++)
-
-                Serial.print((char) readByte(EEPROM_ADDRESS, j));
+            if (currentContainedFolderStartAddresses[i])
+                Serial.print((char)readByte(EEPROM_ADDRESS, currentContainedFolderStartAddresses[i] + j));
 
         }
 
-        Serial.print(" -- ");
+        Serial.println();
 
     }
 
     /*
-     * Obtain and print the files that belong to the parent folder of the current folder.
+     * Obtain and print the files that belong to the current folder.
      */
-    for (int i = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE + 4; i <= FILE_HEADER_PARTITION_UPPER_BOUND;
-        i += FILE_NAME_SIZE + 6) {
 
-        fileParentAddress = (readByte(EEPROM_ADDRESS, i) << 8) | readByte(EEPROM_ADDRESS, i + 1);
+    for (int i = 0; i < fileCount; i++) {
 
-        if (fileParentAddress == folderStartAddress) {
+        for (int j = 0; j < FILE_NAME_SIZE; j++) {
 
-            for (int j = i - (FILE_NAME_SIZE + 4); j < i - 4; j++) {
-
-                Serial.print((char) readByte(EEPROM_ADDRESS, j));
-
-            }
-
-            Serial.println(".txt");
+            if (currentContainedFileHeaderStartAddresses[i])
+                Serial.print((char)readByte(EEPROM_ADDRESS, currentContainedFileHeaderStartAddresses[i] + j));
 
         }
 
+        Serial.println(".txt");
     }
 
 }
@@ -148,6 +101,47 @@ void displayFolderContents(short folderStartAddress) {
  * @Param command the command that the user entered
  */
 void parseCommand(char *command) {
+
+    /*
+     * Comparisons sorted in ascending order by length of command name to maximize efficiency.
+     */
+    if (!strcmp(command, folder_step_in)) {
+
+        stepIn(findStartAddressFromName(getName(FOLDER_NAME_SIZE), "folder"));
+
+    } else if (!strcmp(command, folder_step_out)) {
+
+        stepOut();
+
+    } else if (!strcmp(command, file_write)) {
+
+        Serial.println("\nPlease enter a file name");
+        char *fileName = getName(FILE_NAME_SIZE);
+
+        free(fileName);
+
+    } else if (!strcmp(command, file_read)) {
+
+
+    } else if (!strcmp(command, folder_create)) {
+
+
+    } else if (!strcmp(command, folder_move)) {
+
+
+    } else if (!strcmp(command, file_move)) {
+
+
+    } else if (!strcmp(command, format_sys)) {
+
+
+    } else if (!strcmp(command, folder_copy)) {
+
+
+    } else if (!strcmp(command, file_copy)) {
+
+
+    }
 
 }
 
@@ -177,10 +171,10 @@ void updateCurrentDirectory(short parentStartAddress) {
 
     }
 
-    int fileIndex = 0;
+    int fileHeaderIndex = 0;
 
-    // Update files
-    for (int i = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE + 4; i <= FILE_PARTITION_UPPER_BOUND;
+    // Update file headers
+    for (int i = FILE_HEADER_PARTITION_LOWER_BOUND; i <= FILE_HEADER_PARTITION_UPPER_BOUND;
         i += fileHeaderSize) {
 
         short currStartAddressHigh = readByte(EEPROM_ADDRESS, i);
@@ -188,8 +182,8 @@ void updateCurrentDirectory(short parentStartAddress) {
         short currStartAddress = assembleShort(currStartAddressHigh, currStartAddressLow);
 
         if (currStartAddress == parentStartAddress) {
-            currentContainedFolderStartAddresses[folderIndex] = currStartAddress;
-            fileIndex++;
+            currentContainedFileHeaderStartAddresses[fileHeaderIndex] = currStartAddress;
+            fileHeaderIndex++;
         }
 
     }
@@ -227,4 +221,77 @@ void writeFileToDirectory(char *fileName) {
 
 }
 
-void readFile
+/**
+ * Function: findStartAddressFromName
+ *
+ * Returns the start address of the specified file or folder within the current directory.
+ *
+ * @Param searchFor the name of the file/folder
+ * @Param specifier can be either "file" or "folder, and indicates whether the given name is for a file or folder
+ */
+short findStartAddressFromName(char *searchFor, const char *specifier) {
+
+    int numIters;
+    int nameSize;
+    short arraySize;
+    int matches = 0;
+
+    if (strcmp(specifier, "folder")) {
+
+        numIters = maxFolders;
+        nameSize = FOLDER_NAME_SIZE;
+        arraySize = maxFolders;
+
+    }
+
+    if (strcmp(specifier, "file")) {
+
+        numIters = maxFileHeaders;
+        nameSize = FILE_NAME_SIZE;
+        arraySize = maxFileHeaders;
+
+    }
+
+    short *arrayOfAddresses = (short *) malloc(sizeof(short)*arraySize);
+
+    if (arraySize == maxFolders) {
+
+        for (int i = 0; i < maxFolders; i++)
+            arrayOfAddresses[i] = currentContainedFolderStartAddresses[i];
+
+    } else if (arraySize == maxFileHeaders) {
+
+        for (int i = 0; i < maxFolders; i++)
+            arrayOfAddresses[i] = currentContainedFileHeaderStartAddresses[i];
+
+    }
+
+    for (int i = 0; i < numIters; i++) {
+
+        char charToComp = (char)readByte(EEPROM_ADDRESS, arrayOfAddresses[i]);
+
+        if (charToComp == searchFor[0]) {
+
+
+            for (int j = 0; j < nameSize; j++) {
+
+                charToComp = (char)readByte(EEPROM_ADDRESS, arrayOfAddresses[i] + j);
+                if (charToComp != searchFor[j])
+                    matches = 0;
+
+            }
+
+            if (matches) {
+
+                short retAddress = arrayOfAddresses[i];
+                free(arrayOfAddresses);
+                return retAddress;
+
+            }
+        }
+
+    }
+
+    return -1;
+
+}

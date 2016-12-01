@@ -26,7 +26,6 @@ void InitHFS() {
     int fileIndex = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE;
     short fileStartAddress = 0;
     short fileEndAddress = 0;
-    short parentStartAddress = 0;
 
     for (int i = 0; i < fileCount; i++) {
 
@@ -34,9 +33,6 @@ void InitHFS() {
 
         fileEndAddress = assembleShort(readByte(EEPROM_ADDRESS, fileIndex + 2),
             readByte(EEPROM_ADDRESS, fileIndex + 3));
-
-        parentStartAddress = assembleShort(readByte(EEPROM_ADDRESS, fileIndex + 4),
-            readByte(EEPROM_ADDRESS, fileIndex + 5));
 
         fileIndex += fileHeaderSize;
 
@@ -53,7 +49,6 @@ void InitHFS() {
 
     Serial.println("\nWelcome to your TinyHFS!");
     Serial.println("\nIf you are new to the system or would like a refresher, enter \'help\' at any time.");
-
 
 }
 
@@ -310,18 +305,18 @@ void deleteFile(short fileStartAddress, int fileSize) {
 
 void deleteFolder(short folderStartAddress) {
 
-    int folderUpperAddress = folderStartAddress + folderSize - 1;
+    int folderEndAddress = folderStartAddress + folderSize - 1;
 
     // Prohibit user from deleting root folder
-    if (folderStartAddress == FOLDER_PARTITION_LOWER_BOUND) {
+    if (folderStartAddress == ROOT_ADDRESS) {
 
-      Serial.println("Cannot modify root folder");
-      return;
+        Serial.println("Cannot modify root folder");
+        return;
 
     }
 
     // Overwrite the folder with 0's
-    for (int i = folderStartAddress; i <= folderUpperAddress; i++)
+    for (int i = folderStartAddress; i <= folderEndAddress; i++)
         writeByte(EEPROM_ADDRESS, i, 0);
 
     /*
@@ -385,6 +380,8 @@ char *getName(int maxNameSize) {
     char received;
     String inData;
 
+    Serial.flush();
+
     while (Serial.available() > 0 && !strRcvd) {
 
         received = Serial.read();
@@ -401,7 +398,6 @@ char *getName(int maxNameSize) {
             if (str_len > maxNameSize) {
 
                 Serial.print("ERROR: Name too long; please try again.");
-                free(name);
                 return getName(maxNameSize);
 
             }
@@ -436,37 +432,43 @@ char *getName(int maxNameSize) {
  }
  */
 
-/*
- void organizeMemory(short startAddress, short endAddress) {
+void organizeMemory(short startAddress, short endAddress) {
 
- qsort(fileStartAddresses, fileCount, sizeof(short), compVals);
- qsort(fileEndAddresses, fileCount, sizeof(short), compVals);
+    qsort(fileStartAddresses, fileCount, sizeof(short), compVals);
+    qsort(fileEndAddresses, fileCount, sizeof(short), compVals);
 
- int isOccupied = 1;
- int count = 0;
+    int isOccupied = 1;
+    int count = 0;
 
- do {
+    do {
 
- isOccupied = readByte(EEPROM_ADDRESS, startAddress - count);         //Needs checking for small byte files of just zeros
+        isOccupied = readByte(EEPROM_ADDRESS, startAddress - count); //Needs checking for small byte files of just zeros
 
- if (!isOccupied) count++;
+        if (!isOccupied)
+            count++;
 
- } while (!isOccupied && startAddress - count >= FILE_PARTITION_LOWER_BOUND);
+    } while (!isOccupied && startAddress - count >= FILE_PARTITION_LOWER_BOUND);
 
- while (startAddress <= endAddress)
+    while (startAddress <= endAddress) {
 
- writeByte(EEPROM_ADDRESS, startAddress++ - count, readByte(EEPROM_ADDRESS, startAddress));
+        writeByte(EEPROM_ADDRESS, startAddress - count, readByte(EEPROM_ADDRESS, startAddress));
+        startAddress++;
 
- fileStartAddresses[fileArrayIndex] -= count;
- fileEndAddresses[fileArrayIndex] -= count;
+    }
 
- if (fileArrayIndex >= fileCount) return;
 
- organizeMemory(fileStartAddresses[++fileArrayIndex], fileEndAddresses[fileArrayIndex]);
+    fileStartAddresses[fileArrayIndex] -= count;
+    fileEndAddresses[fileArrayIndex] -= count;
 
- return;
+    if (fileArrayIndex >= fileCount)
+        return;
 
- } */
+    fileArrayIndex++;
+    organizeMemory(fileStartAddresses[fileArrayIndex], fileEndAddresses[fileArrayIndex]);
+
+    return;
+
+}
 
 int compVals(const void * a, const void * b) {
 
