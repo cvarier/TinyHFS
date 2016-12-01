@@ -8,12 +8,17 @@
 #define DELAY_TIME                          4
 #define ROOT_ADDRESS                        32767
 
+<<<<<<< HEAD
 /***************************
  *    Element Name Sizes   *
  * *************************
  */
 #define FILE_NAME_SIZE						          10
 #define FOLDER_NAME_SIZE					          10
+=======
+#define FILE_NAME_SIZE						          10
+#define FOLDER_NAME_SIZE				          	10  //must be greater than 4
+>>>>>>> 56a36acffcd67d7ba409c0b144251d405a98b259
 
 /***************************
  *     Partition Bounds    *
