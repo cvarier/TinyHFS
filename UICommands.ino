@@ -15,6 +15,7 @@ short currentContainedFileHeaderStartAddresses[maxFileHeaders] = { 0 };
  * created will now be linked to this folder.
  *
  * @Param folderName the name of the folder to step into
+ * 
  */
 void stepIn(short folderStartAddress) {
 
@@ -31,11 +32,11 @@ void stepIn(short folderStartAddress) {
  */
 void stepOut() {
 
-    short parentFolderStartAddressHigh = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 2);
-    short parentFolderStartAddressLow = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 3);
+    byte parentFolderStartAddressHigh = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 2);
+    byte parentFolderStartAddressLow = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 3);
     short parentFolderStartAddress = assembleShort(parentFolderStartAddressHigh, parentFolderStartAddressLow);
 
-    if (parentFolderStartAddress == ROOT_ADDRESS) {
+    if (currentFolderStartAddress == ROOT_ADDRESS) {
 
         Serial.println("ERROR: Cannot step out of root");
         return;
@@ -44,8 +45,9 @@ void stepOut() {
 
     updateCurrentDirectory(parentFolderStartAddress);
 
-    displayFolderContent();
     currentFolderStartAddress = parentFolderStartAddress;
+
+   
 
 }
 
@@ -61,41 +63,53 @@ void displayFolderContent() {
     /*
      * Obtain and print the folders that belong to the current folder.
      */
+    updateCurrentDirectory(currentFolderStartAddress);
 
     int isPrinted = 0;
 
     for (int i = 0; i < maxFolders; i++) {
 
-        for (int j = 0; j < FOLDER_NAME_SIZE; j++) {
+        if (currentContainedFolderStartAddresses[i] != 0) {
+            
+            for (int j = 0; j < FOLDER_NAME_SIZE; j++) {
+                
 
-            if (currentContainedFolderStartAddresses[i] != '\0') {
-                Serial.print((char) readByte(EEPROM_ADDRESS, currentContainedFolderStartAddresses[i] + j));
+                Serial.print((char)readByte(EEPROM_ADDRESS, currentContainedFolderStartAddresses[i] + j));
                 isPrinted = 1;
+
             }
 
         }
 
         if (isPrinted)
             Serial.println();
-            
+
         isPrinted = 0;
-        
+
     }
 
     /*
      * Obtain and print the files that belong to the current folder.
      */
 
+    isPrinted = 0;
     for (int i = 0; i < fileCount; i++) {
 
         for (int j = 0; j < FILE_NAME_SIZE; j++) {
 
-            if (currentContainedFileHeaderStartAddresses[i] != '\0')
-                Serial.print((char) readByte(EEPROM_ADDRESS, currentContainedFileHeaderStartAddresses[i] + j));
-
+            if (currentContainedFileHeaderStartAddresses[i] != 0) {
+                char charToPrint = (char) readByte(EEPROM_ADDRESS, currentContainedFileHeaderStartAddresses[i] + j);
+                if (charToPrint)
+                    Serial.print(charToPrint);
+                isPrinted = 1;
+            }
         }
 
-        Serial.println(".txt");
+        if (isPrinted) {
+            Serial.println(".txt");
+        }
+
+        isPrinted = 0;
     }
 
 }
@@ -114,25 +128,36 @@ void parseCommand(char *command) {
      */
     if (!strcmp(command, print_contents)) {
 
-      displayFolderContent();
-     
+        displayFolderContent();
+
     } else if (!strcmp(command, folder_step_in)) {
 
         char *folderName = getName(FOLDER_NAME_SIZE);
-        stepIn(findStartAddressFromName(folderName, "folder"));
+        int add = findStartAddressFromName(folderName, "folder");
+        if (!add) {
+            Serial.println("Folder does not exist.");
+            return;
+        }
+        stepIn(add);
         free(folderName);
+        Serial.println("...done");
+        
+        
 
     } else if (!strcmp(command, folder_step_out)) {
 
         stepOut();
+        Serial.println("...done");
 
     } else if (!strcmp(command, print_dir)) {
 
         printCurrentDirectory();
+        
 
     } else if (!strcmp(command, file_write)) {
 
         Serial.println("\nPlease enter a file name");
+        
         char *fileName = getName(FILE_NAME_SIZE);
 
         if (findStartAddressFromName(fileName, "file")) {
@@ -142,9 +167,10 @@ void parseCommand(char *command) {
 
         }
 
-        Serial.println("\nPlease enter your text. When you are finished, enter the '`' character.");
+        Serial.println("\nPlease enter your text. When you are finished, enter the '~' character.");
         acceptFile(fileName);
         free(fileName);
+        
 
     } else if (!strcmp(command, print_help)) {
 
@@ -152,7 +178,7 @@ void parseCommand(char *command) {
 
     } else if (!strcmp(command, file_read)) {
 
-        Serial.println("\nPlease enter a file name");
+        Serial.println("\nPlease enter a file name (omit extension).");
         char *fileName = getName(FILE_NAME_SIZE);
         short fileHeaderStartAddress = findStartAddressFromName(fileName, "file");
 
@@ -163,31 +189,25 @@ void parseCommand(char *command) {
 
         }
 
-        short fileStartAddressHigh = readByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE);
-        short fileStartAddressLow = readByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE + 1);
+        byte fileStartAddressHigh = readByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE);
+        byte fileStartAddressLow = readByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE + 1);
         short fileStartAddress = assembleShort(fileStartAddressHigh, fileStartAddressLow);
 
-        short fileEndAddressHigh = readByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE + 2);
-        short fileEndAddressLow = readByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE + 3);
+        byte fileEndAddressHigh = readByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE + 2);
+        byte fileEndAddressLow = readByte(EEPROM_ADDRESS, fileHeaderStartAddress + FILE_NAME_SIZE + 3);
         short fileEndAddress = assembleShort(fileEndAddressHigh, fileEndAddressLow);
 
         readFile(fileStartAddress, fileEndAddress);
         free(fileName);
+        
 
     } else if (!strcmp(command, folder_create)) {
 
         Serial.println("\nPlease enter a folder name");
-        char *folderName = getName(FOLDER_NAME_SIZE);
 
-        if (findStartAddressFromName(folderName, "folder")) {
-
-            Serial.println("\nERROR: The folder already exists.");
-            return;
-
-        }
 
         createFolder(currentFolderStartAddress);
-        free(folderName);
+        Serial.println("...done");
 
     } else if (!strcmp(command, folder_move)) {
 
@@ -206,12 +226,14 @@ void parseCommand(char *command) {
 
         deleteFolder(folderStartAddress);
         free(folderName);
+        Serial.println("...done");
 
     } else if (!strcmp(command, file_move)) {
 
     } else if (!strcmp(command, format_sys)) {
 
         format();
+        
 
     } else if (!strcmp(command, folder_copy)) {
 
@@ -219,10 +241,10 @@ void parseCommand(char *command) {
 
     } else if (!strcmp(command, file_delete)) {
 
-        Serial.println("\nPlease enter a file name");
+        Serial.println("\nPlease enter a file name (omit extenstion).");
         char *fileName = getName(FILE_NAME_SIZE);
         short fileHeaderStartAddress = findStartAddressFromName(fileName, "file");
-
+        
         if (!fileHeaderStartAddress) {
 
             Serial.println("\nERROR: The file could not be found.");
@@ -231,8 +253,15 @@ void parseCommand(char *command) {
         }
 
         deleteFile(fileHeaderStartAddress);
+        Serial.println("...done");
 
+    } else if (!strcmp(command, organize_mem)){
+
+        organizeMemory();
+        Serial.println("...done");
+      
     }
+    
 
 }
 
@@ -247,32 +276,41 @@ void updateCurrentDirectory(short parentStartAddress) {
 
     int folderIndex = 0;
 
+    for (int i = 0; i < maxFolders; i++) 
+        currentContainedFolderStartAddresses[i] = 0;
+    for (int i = 0; i < maxFileHeaders; i++)
+        currentContainedFileHeaderStartAddresses[i] = 0;
+
+    
+
     // Update folders
     for (int i = FOLDER_PARTITION_LOWER_BOUND + FOLDER_NAME_SIZE + 2; i <= FOLDER_PARTITION_UPPER_BOUND; i +=
         folderSize) {
 
-        short currStartAddressHigh = readByte(EEPROM_ADDRESS, i);
-        short currStartAddressLow = readByte(EEPROM_ADDRESS, i + 1);
+        byte currStartAddressHigh = readByte(EEPROM_ADDRESS, i);
+        byte currStartAddressLow = readByte(EEPROM_ADDRESS, i + 1);
         short currStartAddress = assembleShort(currStartAddressHigh, currStartAddressLow);
 
         if (currStartAddress == parentStartAddress) {
-            currentContainedFolderStartAddresses[folderIndex] = currStartAddress;
+            currentContainedFolderStartAddresses[folderIndex] = i - FOLDER_NAME_SIZE - 2;
+
             folderIndex++;
         }
-
     }
 
     int fileHeaderIndex = 0;
 
     // Update file headers
-    for (int i = FILE_HEADER_PARTITION_LOWER_BOUND; i <= FILE_HEADER_PARTITION_UPPER_BOUND; i += fileHeaderSize) {
+    for (int i = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE + 4; i <= FILE_HEADER_PARTITION_UPPER_BOUND; i +=
+        fileHeaderSize) {
 
-        short currStartAddressHigh = readByte(EEPROM_ADDRESS, i);
-        short currStartAddressLow = readByte(EEPROM_ADDRESS, i + 1);
+        byte currStartAddressHigh = readByte(EEPROM_ADDRESS, i);
+        byte currStartAddressLow = readByte(EEPROM_ADDRESS, i + 1);
         short currStartAddress = assembleShort(currStartAddressHigh, currStartAddressLow);
 
         if (currStartAddress == parentStartAddress) {
-            currentContainedFileHeaderStartAddresses[fileHeaderIndex] = currStartAddress;
+            currentContainedFileHeaderStartAddresses[fileHeaderIndex] = i - FILE_NAME_SIZE - 4;
+
             fileHeaderIndex++;
         }
 
@@ -289,6 +327,12 @@ void printCurrentDirectory() {
 
     String directory = "";
 
+    if (currentFolderStartAddress == ROOT_ADDRESS){
+        Serial.println();
+        Serial.println("E://");
+        return;
+    }
+
     for (int i = currentFolderStartAddress + FOLDER_NAME_SIZE - 1; i >= currentFolderStartAddress; i--)
         directory = (char) readByte(EEPROM_ADDRESS, i) + directory;
 
@@ -299,20 +343,30 @@ void printCurrentDirectory() {
 
 }
 
+/*
+ * Function : getDirectory
+ * 
+ * 
+ * 
+ */
+
 String getDirectory(String directory, short currentAddress) {
 
     short parentFolderAddressLoc = currentAddress + FOLDER_NAME_SIZE + 2;
     short parentFolderAddress = assembleShort(readByte(EEPROM_ADDRESS, parentFolderAddressLoc),
         readByte(EEPROM_ADDRESS, parentFolderAddressLoc + 1));
 
-    directory = "/" + directory;
-  
+    
+
+
     if (parentFolderAddress == ROOT_ADDRESS) {
         directory = "E:/" + directory;
         return directory;
     }
 
-    for (int i = parentFolderAddress + FOLDER_NAME_SIZE - 1; i >= parentFolderAddressLoc; i--)
+    directory = "/" + directory;
+
+    for (int i = parentFolderAddress + FOLDER_NAME_SIZE - 1; i >= parentFolderAddress; i--)
         directory = (char) readByte(EEPROM_ADDRESS, i) + directory;
 
     return getDirectory(directory, parentFolderAddress);
@@ -320,35 +374,35 @@ String getDirectory(String directory, short currentAddress) {
 }
 
 /**
- * Function: printHelp
+ * Function: print
  *
  * Prints the list of commands and what they do.
  *
  */
 void printHelp() {
 
-    Serial.println("\n*****COMMANDS LIST*****");
-    Serial.println("\nfile -> Creates and stores new text file with a given file name");
-    Serial.println("read -> Displays the contents of a specified file");
-    Serial.println("delfile -> Deletes the specified file");
-    Serial.println("cpyfile -> Copies a specified file to a specified path");
-    Serial.println("mvfile -> Moves a specified file to a specified path\n");
+    Serial.println("\n*****COMMANDS LIST*****\n");
+    Serial.println("file    ->  Creates and stores new text file with a given file name");
+    Serial.println("read    ->  Displays the contents of a specified file");
+    Serial.println("delfile ->  Deletes the specified file");
+    //Serial.println("cpyfile -> Copies a specified file to a specified path");
+    //Serial.println("mvfile -> Moves a specified file to a specified path\n");
 
-    Serial.println("mkdir -> Creates new folder with a given directory name");
-    Serial.println("in -> Steps into a specified folder, down a level");
-    Serial.println("out -> Steps up to the parent folder");
-    Serial.println("delfol -> Deletes the specified folder");
-    Serial.println("cpyfol -> Copies a specified folder to a specified path");
-    Serial.println("mvfol -> Moves a specified folder to a specified path\n");
+    Serial.println("mkdir   ->  Creates new folder with a given directory name");
+    Serial.println("in      ->  Steps into a specified folder, down a level");
+    Serial.println("out     ->  Steps up to the parent folder");
+    Serial.println("delfol  ->  Deletes the specified folder");
+    //Serial.println("cpyfol -> Copies a specified folder to a specified path");
+    //Serial.println("mvfol -> Moves a specified folder to a specified path\n");
 
-    Serial.println("ls -> Display the current folder's contents");
-    Serial.println("format -> Clears the entire file system");
-    Serial.println("pwd -> Displays the current working directory");
+    Serial.println("ls      ->  Display the current folder's contents");
+    Serial.println("format  ->  Clears the entire file system (takes approximately 144 seconds)");
+    Serial.println("pwd     ->  Displays the current working directory");
 
 }
 
 /**
- * Function: findStartAddressFromName
+ * Name : findStartAddressFromName
  *
  * Returns the start address of the specified file header or folder within the current directory.
  * Returns 0 if start address was not found.
@@ -363,7 +417,7 @@ short findStartAddressFromName(char *searchFor, const char *specifier) {
     short arraySize;
     int matches = 0;
 
-    if (strcmp(specifier, "folder")) {
+    if (!strcmp(specifier, "folder")) {
 
         numIters = maxFolders;
         nameSize = FOLDER_NAME_SIZE;
@@ -371,7 +425,7 @@ short findStartAddressFromName(char *searchFor, const char *specifier) {
 
     }
 
-    if (strcmp(specifier, "file")) {
+    if (!strcmp(specifier, "file")) {
 
         numIters = maxFileHeaders;
         nameSize = FILE_NAME_SIZE;
@@ -379,7 +433,7 @@ short findStartAddressFromName(char *searchFor, const char *specifier) {
 
     }
 
-    short *arrayOfAddresses = (short *) malloc(sizeof(short) * arraySize);
+    short arrayOfAddresses[arraySize];
 
     if (arraySize == maxFolders) {
 
@@ -388,7 +442,7 @@ short findStartAddressFromName(char *searchFor, const char *specifier) {
 
     } else if (arraySize == maxFileHeaders) {
 
-        for (int i = 0; i < maxFolders; i++)
+        for (int i = 0; i < maxFileHeaders; i++)
             arrayOfAddresses[i] = currentContainedFileHeaderStartAddresses[i];
 
     }
@@ -398,19 +452,20 @@ short findStartAddressFromName(char *searchFor, const char *specifier) {
         char charToComp = (char) readByte(EEPROM_ADDRESS, arrayOfAddresses[i]);
 
         if (charToComp == searchFor[0]) {
-
+            int matches = 1;
             for (int j = 0; j < nameSize; j++) {
 
                 charToComp = (char) readByte(EEPROM_ADDRESS, arrayOfAddresses[i] + j);
-                if (charToComp != searchFor[j])
+
+                if (charToComp != searchFor[j]) {
                     matches = 0;
+                }
 
             }
 
             if (matches) {
 
                 short retAddress = arrayOfAddresses[i];
-                free(arrayOfAddresses);
                 return retAddress;
 
             }
@@ -418,61 +473,50 @@ short findStartAddressFromName(char *searchFor, const char *specifier) {
 
     }
 
-    free(arrayOfAddresses);
     return 0;
 
 }
 
-/**
- * Function: writeFileToDirectory
+/* Name : acceptFile
  *
- * Writes the file with a given file name to the current directory
+ * Accepts input from the user. This will be the data written to the EEPROM.
  *
- * @Param fileName the name of the file
+ * @Param name of file to write
+ * 
  */
 void acceptFile(char *fileName) {
 
-    /*
-     * TODO TODO TODO
-     * Check if file already exists within current directory. If not, continue as normal. If it does, prompt user
-     * for overwrite. If yes, then write the file to the end of the files and update the file header's attributes.
-     * If not, then return.
-     */
-
     int strRcvd = 0;
+    String inData = "";
     Serial.flush();
 
     while (1) {
-      
+
         while (Serial.available() > 0 && !strRcvd) {
-    
+
             char received = Serial.read();
             inData += received;
-    
+
             if (received == fileTerminator) {
-    
+
                 strRcvd = 1;
-    
+
                 // Work out length of data
                 int str_len = inData.length() - 1;
                 char str_bytes[str_len];
-    
+
                 // Split data into an array of char arrays, each one byte long
                 for (int j = 0; j < str_len; j++)
                     str_bytes[j] = inData[j];
-    
+
                 Serial.println();
-    
-                short currentParentAddressHigh = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 2);
-                short currentParentAddressLow = readByte(EEPROM_ADDRESS, currentFolderStartAddress + FOLDER_NAME_SIZE + 3);
-                short currentParentAddress = assembleShort(currentParentAddressHigh, currentParentAddressLow);
-    
-                writeFile(str_bytes, str_len, currentParentAddress, fileName);
+
+                writeFile(str_bytes, str_len, currentFolderStartAddress, fileName);
 
                 return;
-    
+
             }
-    
+
         }
 
     }

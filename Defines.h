@@ -1,19 +1,21 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-// NOTE: The root folder's address is 37768. It is not represented in the EEPROM, as it is a hypothetical folder.
+// NOTE: The root folder's address is 37767. It is not represented in the EEPROM, as it is a hypothetical folder.
 #define EEPROM_ADDRESS                      0x54    
 #define MIN_ADDRESS                         0
 #define MAX_ADDRESS                         32767
 #define DELAY_TIME                          4
-#define ROOT_ADDRESS                        32768
+#define ROOT_ADDRESS                        32767
 
 /***************************
  *    Element Name Sizes   *
  * *************************
  */
-#define FILE_NAME_SIZE						          10
-#define FOLDER_NAME_SIZE					          10
+#define FILE_NAME_SIZE                      10
+#define FOLDER_NAME_SIZE                    10
+#define FILE_NAME_SIZE                      10
+#define FOLDER_NAME_SIZE                    10
 
 /***************************
  *     Partition Bounds    *
@@ -24,7 +26,7 @@
 #define FILE_PARTITION_LOWER_BOUND          1001
 #define FILE_PARTITION_UPPER_BOUND          28768
 #define FILE_HEADER_PARTITION_LOWER_BOUND   28769
-#define FILE_HEADER_PARTITION_UPPER_BOUND   32767
+#define FILE_HEADER_PARTITION_UPPER_BOUND   32766
 
 /***************************
  *     Partition Sizes     *
@@ -52,28 +54,29 @@ const int maxFolders = folderPartitionSize / (folderSize);
  *      Command Names      *
  * *************************
  */
-const char file_write[]      =   "file";
-const char file_copy[]       =   "cpyfile";
-const char file_move[]       =   "mvfile";
-const char file_read[]       =   "read";
-const char file_delete[]     =   "delfile";
+const char file_write[] = "file";
+const char file_copy[] = "cpyfile";
+const char file_move[] = "mvfile";
+const char file_read[] = "read";
+const char file_delete[] = "delfile";
 
-const char folder_create[]   =   "mkdir";
-const char folder_step_in[]  =   "in";
-const char folder_step_out[] =   "out";
-const char folder_copy[]     =   "cpyfol";
-const char folder_move[]     =   "mvfol";
-const char folder_delete[]   =   "delfol";
+const char folder_create[] = "mkdir";
+const char folder_step_in[] = "in";
+const char folder_step_out[] = "out";
+const char folder_copy[] = "cpyfol";
+const char folder_move[] = "mvfol";
+const char folder_delete[] = "delfol";
 
-const char print_contents[]  =   "ls";
-const char print_dir[]       =   "pwd";
-const char format_sys[]      =   "format";
-const char print_help[]      =   "help";
+const char print_contents[] = "ls";
+const char print_dir[] = "pwd";
+const char format_sys[] = "format";
+const char print_help[] = "help";
+const char organize_mem[] = "omem";
 
 /***************************
  *      Miscellaneous      *
  * *************************
  */
-const char fileTerminator    =   '~';
+const char fileTerminator = '~';
 
 #endif
