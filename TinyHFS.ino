@@ -13,7 +13,6 @@ String data = "";
 void setup() {
 
     InitHFS();
-   
 
 }
 
@@ -40,6 +39,11 @@ void loop() {
                 str_bytes[j] = data[j];
 
             str_bytes[str_len - 1] = '\0';
+
+            // Echo the user's input
+            Serial.println(">");
+            Serial.print(data);
+            Serial.println();
 
             parseCommand(str_bytes);
 

@@ -17,7 +17,7 @@ void InitHFS() {
     /* The first byte in memory will indicate the number of files stored in the system.
      * This will be referred to as the file count byte.
      */
-     
+
     fileCount = (short) readByte(EEPROM_ADDRESS, 0);
 
     /* The following code will obtain the start and end addresses of all files and their
@@ -28,12 +28,9 @@ void InitHFS() {
     short fileStartAddress = 0;
     short fileEndAddress = 0;
 
-    
-
     for (int i = 0; i < fileCount; i++) {
 
-        fileStartAddress = assembleShort(readByte(EEPROM_ADDRESS, fileIndex), 
-            readByte(EEPROM_ADDRESS, fileIndex + 1));
+        fileStartAddress = assembleShort(readByte(EEPROM_ADDRESS, fileIndex), readByte(EEPROM_ADDRESS, fileIndex + 1));
 
         fileEndAddress = assembleShort(readByte(EEPROM_ADDRESS, fileIndex + 2),
             readByte(EEPROM_ADDRESS, fileIndex + 3));
@@ -41,17 +38,15 @@ void InitHFS() {
         fileIndex += fileHeaderSize;
 
         // Do nothing if empty space is read
-        if (!(fileStartAddress || fileEndAddress)){
-           i--;
-           continue;
+        if (!(fileStartAddress || fileEndAddress)) {
+            i--;
+            continue;
         }
 
         fileStartAddresses[i] = fileStartAddress;
         fileEndAddresses[i] = fileEndAddress;
 
     }
-
-    
 
     qsort(fileStartAddresses, fileCount, sizeof(short), compVals);
     qsort(fileEndAddresses, fileCount, sizeof(short), compVals);
@@ -65,14 +60,12 @@ void InitHFS() {
     Serial.print("File count : ");
     Serial.println(fileCount);
 
-
-    for(int i = 0; i < fileCount; i++){
+    for (int i = 0; i < fileCount; i++) {
         Serial.print(fileStartAddresses[i]);
         Serial.print(" : ");
         Serial.println(fileEndAddresses[i]);
     }
 
- 
 }
 
 void writeFile(char file_text[], short file_size, short parentStartAddress, char *fileName) {
@@ -115,7 +108,7 @@ void readFile(short fileStartAddress, short fileEndAddress) {
     short fileSize = fileEndAddress - fileStartAddress + 1;
     unsigned char str_bytes[fileSize];
 
-    Serial.println("FILE READ INITIATED\n");
+    Serial.println("\nFILE READ INITIATED");
 
     double timeStart = millis() / 1000.0;
 
@@ -130,7 +123,7 @@ void readFile(short fileStartAddress, short fileEndAddress) {
     // Print out the read data
     for (int i = 0; i < fileSize; i++)
         Serial.print((char) str_bytes[i]);
-    
+
     Serial.println("\n*********************");
 
     Serial.print("\nFILE LENGTH: ");
@@ -149,9 +142,9 @@ void createFolder(short parentStartAddress) {
 
     char *folderName = getName(FOLDER_NAME_SIZE);
 
-    if (findStartAddressFromName(folderName, "folder")){
-      Serial.println("\nERROR: This folder already exists.");
-      return;
+    if (findStartAddressFromName(folderName, "folder")) {
+        Serial.println("\nERROR: This folder already exists.");
+        return;
     }
 
     short folderStartAddress = 0;
@@ -197,22 +190,25 @@ void createFolder(short parentStartAddress) {
 
 }
 
+void rename(short startAddress, char *nameNew, short nameSize) {
+
+    for (int i = startAddress; i < startAddress + nameSize; i++)
+        writeByte(EEPROM_ADDRESS, i, nameNew[i - startAddress]);
+
+}
+
 /**
  * Function : getName
  * 
- * returns a character array inputted by user that will be used for various functions
+ * Returns a character array entered by the user.
  * 
- * @param name length limit
+ * @param maxNameSize name length limit
  */
-
 char *getName(int maxNameSize) {
 
-    int strRcvd = 0;
     char *name = (char *) malloc(sizeof(char) * maxNameSize);
     char received = 0;
     String inData;
-
-    Serial.println("Enter text:");
 
     Serial.flush();
 
@@ -232,7 +228,7 @@ char *getName(int maxNameSize) {
 
                 if (str_len > maxNameSize) {
 
-                    Serial.println("ERROR: Name too long; please try again.");
+                    Serial.println("\nERROR: Name too long; please try again.");
                     free(name);
                     return getName(maxNameSize);
 
@@ -251,12 +247,12 @@ char *getName(int maxNameSize) {
         }
 
     }
+
 }
 
 // Returns 1 if successful, else 0
 int createFileHeader(short fileStartAddress, short parentStartAddress, short fileSize, char *fileName) {
 
-  
     short fileEndAddress = fileStartAddress + fileSize - 1;
 
     byte fileStartAddressLow = getLowByte(fileStartAddress);
@@ -282,8 +278,6 @@ int createFileHeader(short fileStartAddress, short parentStartAddress, short fil
         }
 
     }
-
-    
 
     if (!fileHeaderStartAddress) {
 
@@ -317,18 +311,46 @@ int createFileHeader(short fileStartAddress, short parentStartAddress, short fil
     return 1;
 
 }
-/*
- void copyFile(short copyFrom, short copyTo, short fileSize) {
 
- // In order to copy, this function will be used in conjunction with write file
- for (int i = copyFrom; i < copyFrom + fileSize; i++)
- writeByte(EEPROM_ADDRESS, copyTo, readByte(EEPROM_ADDRESS, i));
+void copyFile(short srcStartAddress, short srcEndAddress, short destStartAddress, char *fileName) {
 
- }
+    double timeStart = millis() / 1000.0;
 
- void moveFile() {
+    int file_size = srcEndAddress - srcStartAddress + 1;
+    short fileStartAddress = (fileCount == 0 ? FILE_PARTITION_LOWER_BOUND : fileEndAddresses[fileCount - 1] + 1);
+    Serial.println("\nFILE COPY INITIATED");
 
- }*/
+    if (fileStartAddress + file_size - 1 > FILE_PARTITION_UPPER_BOUND
+        || !createFileHeader(fileStartAddress, destStartAddress, file_size, fileName)) {
+
+        Serial.println("\nERROR: File space full; cannot save file");
+
+        return;
+
+    }
+
+    for (int i = fileStartAddress; i <= fileStartAddress + file_size - 1; i++)
+        writeByte(EEPROM_ADDRESS, i, readByte(EEPROM_ADDRESS, srcStartAddress + i - fileStartAddress));
+
+    double timeEnd = millis() / 1000.0;
+
+    Serial.print("\nFILE COPIED\n\nFILE LENGTH: ");
+    Serial.print(file_size);
+    Serial.print(" BYTES\n");
+    Serial.println("FINISHED IN ");
+    Serial.print(timeEnd - timeStart);
+    Serial.print(" s\n");
+
+    fileStartAddresses[fileCount] = fileStartAddress;
+    fileEndAddresses[fileCount] = fileStartAddress + file_size - 1;
+
+    writeByte(EEPROM_ADDRESS, 0, (byte)(++fileCount));
+
+}
+
+void moveFile() {
+
+}
 
 void deleteFile(short fileHeaderStartAddress) {
 
@@ -379,7 +401,7 @@ void deleteFolder(short folderStartAddress) {
     // Prohibit user from deleting root folder
     if (folderStartAddress == ROOT_ADDRESS) {
 
-        Serial.println("Cannot modify root folder");
+        Serial.println("\nERROR: Cannot delete root folder");
         return;
 
     }
@@ -435,76 +457,68 @@ void format() {
 /**
  *   Function : organizeMemory
  *
- *   When writing a file to the EEPROM, the file written adjacent to the greatest
- *   address that is occupied. This creates an efficiency problem. When a file is deleted
- *   somewhere in the middle of occupied memory, free space is created, but cannot be accessed.
- *   This function fixes this by shifting every occupied space to the left for however many
- *   bytes of free space are available. This allows us to effectively make use of previously
- *   used space.
- *
- *
+ *   When writing a file to the EEPROM, the file written is adjacent to the greatest address that is occupied.
+ *   This creates an efficiency problem. When a file is deleted somewhere in the middle of occupied memory,
+ *   free space is created, but cannot be accessed. This function corrects this by shifting every file to the
+ *   left according to the number bytes of free space. This allows us to effectively make use of previously
+ *   occupied space.
  */
-
 void organizeMemory() {
 
     short shiftHowMany;
-    short readAddress;
     short fileSize;
     int needsShifting = 1;
 
     qsort(fileStartAddresses, fileCount, sizeof(short), compVals);
     qsort(fileEndAddresses, fileCount, sizeof(short), compVals);
 
-    Serial.println("Organizing memory...");
+    Serial.println("\nOrganizing memory...");
 
     shiftHowMany = fileStartAddresses[0] - FILE_PARTITION_LOWER_BOUND;
 
-    if (!shiftHowMany) 
+    if (!shiftHowMany)
         needsShifting = 0;
 
     fileSize = fileEndAddresses[0] - fileStartAddresses[0] + 1;
 
-    
     if (needsShifting) {
+
         for (int j = 0; j < fileSize; j++) {
+
             writeByte(EEPROM_ADDRESS, fileStartAddresses[0] - shiftHowMany + j,
-                readByte(EEPROM_ADDRESS, fileStartAddresses[0] + j)); 
-                   
+                readByte(EEPROM_ADDRESS, fileStartAddresses[0] + j));
+
         }
 
-        
-
         for (int i = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE; i <= FILE_HEADER_PARTITION_UPPER_BOUND; i +=
-                fileHeaderSize) {
+            fileHeaderSize) {
 
             short readAddress = assembleShort(readByte(EEPROM_ADDRESS, i), readByte(EEPROM_ADDRESS, i + 1));
 
             if (readAddress == fileStartAddresses[0]) {
-                
+
                 writeByte(EEPROM_ADDRESS, i, getHighByte(fileStartAddresses[0] - shiftHowMany));
                 writeByte(EEPROM_ADDRESS, i + 1, getLowByte(fileStartAddresses[0] - shiftHowMany));
                 writeByte(EEPROM_ADDRESS, i + 2, getHighByte(fileEndAddresses[0] - shiftHowMany));
                 writeByte(EEPROM_ADDRESS, i + 3, getLowByte(fileEndAddresses[0] - shiftHowMany));
                 break;
+
             }
 
         }
-    
-    
 
-    fileStartAddresses[0] -= shiftHowMany;
-    fileEndAddresses[0] -= shiftHowMany;
+        fileStartAddresses[0] -= shiftHowMany;
+        fileEndAddresses[0] -= shiftHowMany;
 
     }
-    
+
     needsShifting = 1;
 
-    //same as previous code but now does it for the rest of the array
     for (int i = 1; i < fileCount; i++) {
 
         shiftHowMany = fileStartAddresses[i] - fileEndAddresses[i - 1] - 1;
 
-        if (!shiftHowMany) 
+        if (!shiftHowMany)
             needsShifting = 0;
 
         fileSize = fileEndAddresses[i] - fileStartAddresses[i] + 1;
@@ -513,59 +527,58 @@ void organizeMemory() {
 
             for (int j = 0; j < fileSize; j++)
                 writeByte(EEPROM_ADDRESS, fileStartAddresses[i] - shiftHowMany + j,
-                    readByte(EEPROM_ADDRESS, fileStartAddresses[i] + j)); // shifts file contents
+                    readByte(EEPROM_ADDRESS, fileStartAddresses[i] + j));
 
-            // add in file header modifications here
-            for (int k = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE; k <= FILE_HEADER_PARTITION_UPPER_BOUND; k +=
-                fileHeaderSize) {
+            for (int k = FILE_HEADER_PARTITION_LOWER_BOUND + FILE_NAME_SIZE; k <= FILE_HEADER_PARTITION_UPPER_BOUND;
+                k += fileHeaderSize) {
 
                 short readAddress = assembleShort(readByte(EEPROM_ADDRESS, k), readByte(EEPROM_ADDRESS, k + 1));
 
                 if (readAddress == fileStartAddresses[i]) {
-                    Serial.println("in if2");
+
                     writeByte(EEPROM_ADDRESS, k, getHighByte(fileStartAddresses[i] - shiftHowMany));
                     writeByte(EEPROM_ADDRESS, k + 1, getLowByte(fileStartAddresses[i] - shiftHowMany));
                     writeByte(EEPROM_ADDRESS, k + 2, getHighByte(fileEndAddresses[i] - shiftHowMany));
                     writeByte(EEPROM_ADDRESS, k + 3, getLowByte(fileEndAddresses[i] - shiftHowMany));
-                    
+
                     break;
+
                 }
 
             }
 
-        fileStartAddresses[i] -= shiftHowMany;
-        fileEndAddresses[i] -= shiftHowMany;
-            
+            fileStartAddresses[i] -= shiftHowMany;
+            fileEndAddresses[i] -= shiftHowMany;
+
         }
+
         needsShifting = 1;
+
     }
 
-
-    for(int i = 0; i < fileCount; i++){
+    for (int i = 0; i < fileCount; i++) {
         Serial.print(fileStartAddresses[i]);
         Serial.print(" : ");
         Serial.println(fileEndAddresses[i]);
     }
 
-    
-
 }
 
-int compVals(const void* a, const void* b){
+int compVals(const void* a, const void* b) {
 
-    return (*(short *)a - *(short *)b);
+    return (*(short *) a - *(short *) b);
 
 }
 
 byte getLowByte(short num) {
 
-    return (byte) (num & 0xff);
+    return (byte)(num & 0xff);
 
 }
 
 byte getHighByte(short num) {
 
-    return (byte) (num >> 8 & 0xff);
+    return (byte)(num >> 8 & 0xff);
 
 }
 
@@ -575,4 +588,3 @@ short assembleShort(byte high, byte low) {
     return (short) (low | high << 8);
 
 }
-

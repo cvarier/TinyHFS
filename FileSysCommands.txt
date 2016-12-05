@@ -1,6 +1,5 @@
 LIST OF COMMANDS
 
-HIGH PRIORITY
 
 ls -> Prints the current folder's contents
 
@@ -14,6 +13,10 @@ out -> Steps up to the parent folder.
 
 read [filename] -> Displays the contents of the specified file.
 
+rnfile [filename] -> Renames the specified file.
+
+rnfol [foldername] -> Renames the specified folder.
+
 format -> Clears the entire file system
 
 pwd -> Displays the current working directory
@@ -21,8 +24,6 @@ pwd -> Displays the current working directory
 delfile -> Deletes the specified file
 
 delfol -> Deletes the specified folder
-
-LOW PRIORITY
 
 cpyfile [filename] [pathname] -> Copies the specified file to the specified path. If file already exists, then prompt user if they wish to overwrite with y/n prompt.
 
@@ -32,6 +33,6 @@ mvfile [filename] [pathname] -> Moves the specified file to the specified path. 
 
 mvfol [foldername] [pathname] -> Moves the specified folder to the specified path. If folder already exists, then prompt user if they wish to overwrite with y/n prompt.
 
-implement overwrite at the end
+omem - Organizes the memory by removing gaps between adjacent files
 
 
