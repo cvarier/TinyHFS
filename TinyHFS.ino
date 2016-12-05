@@ -6,7 +6,6 @@
 #include <Wire.h>
 #include "Energia.h"
 
-
 int strRcvd = 0;
 String data = "";
 
@@ -17,8 +16,7 @@ void setup() {
 }
 
 void loop() {
-  
-    
+
     int strRcvd = 0;
 
     while (Serial.available() > 0 && !strRcvd) {
@@ -41,12 +39,15 @@ void loop() {
             str_bytes[str_len - 1] = '\0';
 
             // Echo the user's input
-            Serial.print("\n>");
-            Serial.println(data);
+
+            if (data != "\n") {
+
+                Serial.print("\n>");
+                Serial.print(data);
+
+            }
 
             parseCommand(str_bytes);
-
-            Serial.println();
 
             data = "";
             Serial.flush();

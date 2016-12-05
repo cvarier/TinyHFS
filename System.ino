@@ -12,7 +12,7 @@ void InitHFS() {
     Serial.begin(9600);
     InitIO();
 
-    Serial.println("Initializing your TinyHFS...\n");
+    Serial.println("\nInitializing your TinyHFS...");
 
     /* The first byte in memory will indicate the number of files stored in the system.
      * This will be referred to as the file count byte.
@@ -39,8 +39,10 @@ void InitHFS() {
 
         // Do nothing if empty space is read
         if (!(fileStartAddress || fileEndAddress)) {
+
             i--;
             continue;
+
         }
 
         fileStartAddresses[i] = fileStartAddress;
@@ -57,15 +59,6 @@ void InitHFS() {
     Serial.println("\nIf you are new to the system or would like a refresher, enter \'help\' at any time.");
     Serial.println("If this is your first time using TinyHFS, please format the system before use.");
 
-    Serial.print("File count : ");
-    Serial.println(fileCount);
-
-    for (int i = 0; i < fileCount; i++) {
-        Serial.print(fileStartAddresses[i]);
-        Serial.print(" : ");
-        Serial.println(fileEndAddresses[i]);
-    }
-
 }
 
 void writeFile(char file_text[], short file_size, short parentStartAddress, char *fileName) {
@@ -78,7 +71,10 @@ void writeFile(char file_text[], short file_size, short parentStartAddress, char
     if (fileStartAddress + file_size - 1 > FILE_PARTITION_UPPER_BOUND
         || !createFileHeader(fileStartAddress, parentStartAddress, file_size, fileName)) {
 
-        Serial.println("\nERROR: File space full; cannot save file");
+        Serial.print(
+            "\nERROR: File space full; cannot save file. Try deleting some files, or organizing memory with the '");
+        Serial.print(organize_mem);
+        Serial.println("' command.");
 
         return;
 
@@ -92,7 +88,7 @@ void writeFile(char file_text[], short file_size, short parentStartAddress, char
     Serial.print("\nFILE WRITTEN\n\nFILE LENGTH: ");
     Serial.print(file_size);
     Serial.print(" BYTES\n");
-    Serial.println("FINISHED IN ");
+    Serial.println("\nFINISHED IN ");
     Serial.print(timeEnd - timeStart);
     Serial.print(" s\n");
 
@@ -118,7 +114,7 @@ void readFile(short fileStartAddress, short fileEndAddress) {
 
     double timeEnd = millis() / 1000.0;
 
-    Serial.println("*** File Contents ***");
+    Serial.println("\n*** File Contents ***");
 
     // Print out the read data
     for (int i = 0; i < fileSize; i++)
@@ -129,7 +125,7 @@ void readFile(short fileStartAddress, short fileEndAddress) {
     Serial.print("\nFILE LENGTH: ");
     Serial.print(fileSize);
     Serial.print(" BYTES\n");
-    Serial.print("\nFINISHED IN \n ~ ");
+    Serial.println("\nFINISHED IN");
     Serial.print(timeEnd - timeStart);
     Serial.print(" s\n");
 
@@ -142,9 +138,17 @@ void createFolder(short parentStartAddress) {
 
     char *folderName = getName(FOLDER_NAME_SIZE);
 
+    if (!folderName) {
+
+        return;
+
+    }
+
     if (findStartAddressFromName(folderName, "folder")) {
+
         Serial.println("\nERROR: This folder already exists.");
         return;
+
     }
 
     short folderStartAddress = 0;
@@ -155,8 +159,10 @@ void createFolder(short parentStartAddress) {
         spaceCount = (readByte(EEPROM_ADDRESS, j) == 0 ? spaceCount + 1 : 0);
 
         if (spaceCount == folderSize) {
+
             folderStartAddress = j - folderSize + 1;
             break;
+
         }
 
     }
@@ -164,11 +170,7 @@ void createFolder(short parentStartAddress) {
     if (!folderStartAddress) {
 
         Serial.println("\nERROR: Folder space full; cannot create folder.");
-
-        /* Tell user to delete at least one folder if they wish to create a new folder.
-         */
-
-        Serial.println("\nPlease delete at least one folder if you wish to create a new one.");
+        Serial.println("Please delete at least one folder if you wish to create a new one.");
 
         return;
 
@@ -188,6 +190,8 @@ void createFolder(short parentStartAddress) {
     writeByte(EEPROM_ADDRESS, folderStartAddress + FOLDER_NAME_SIZE + 2, parentStartAddressHigh);
     writeByte(EEPROM_ADDRESS, folderStartAddress + FOLDER_NAME_SIZE + 3, parentStartAddressLow);
 
+    Serial.println("...done");
+
 }
 
 void rename(short startAddress, char *nameNew, short nameSize) {
@@ -195,6 +199,7 @@ void rename(short startAddress, char *nameNew, short nameSize) {
     for (int i = startAddress; i < startAddress + nameSize; i++)
         writeByte(EEPROM_ADDRESS, i, nameNew[i - startAddress]);
 
+    Serial.println("...done");
 }
 
 /**
@@ -230,13 +235,14 @@ char *getName(int maxNameSize) {
 
                     Serial.println("\nERROR: Name too long; please try again.");
                     free(name);
-                    return getName(maxNameSize);
+                    return 0;
 
                 }
 
                 // Split string into an array of char arrays, each one byte long
                 for (int j = 0; j < str_len; j++)
                     name[j] = inData[j];
+
                 for (int j = str_len; j < maxNameSize; j++)
                     name[j] = 0;
 
@@ -281,13 +287,10 @@ int createFileHeader(short fileStartAddress, short parentStartAddress, short fil
 
     if (!fileHeaderStartAddress) {
 
-        Serial.println("\nERROR: File header space full; cannot store file");
-
-        // Prompt user to organize file partition. This will close gaps between files.
-
-        /* Determine if there is free space now. If not, tell user to delete at least one folder if they wish
-         * to create a new file.
-         */
+        Serial.print(
+            "\nERROR: File space full; cannot save file. Try deleting some files, or organizing memory with the '");
+        Serial.print(organize_mem);
+        Serial.println("' command.");
 
         return 0;
 
@@ -337,7 +340,7 @@ void copyFile(short srcStartAddress, short srcEndAddress, short destStartAddress
     Serial.print("\nFILE COPIED\n\nFILE LENGTH: ");
     Serial.print(file_size);
     Serial.print(" BYTES\n");
-    Serial.println("FINISHED IN ");
+    Serial.println("\nFINISHED IN");
     Serial.print(timeEnd - timeStart);
     Serial.print(" s\n");
 
@@ -444,12 +447,12 @@ void format() {
 
     double timeEnd = millis() / 1000.0;
 
-    InitHFS();
-
     Serial.print("\nEEPROM FORMATTED\n\n");
     Serial.println("FINISHED IN ");
     Serial.print(timeEnd - timeStart);
     Serial.print(" s\n");
+
+    InitHFS();
 
 }
 
@@ -553,12 +556,6 @@ void organizeMemory() {
 
         needsShifting = 1;
 
-    }
-
-    for (int i = 0; i < fileCount; i++) {
-        Serial.print(fileStartAddresses[i]);
-        Serial.print(" : ");
-        Serial.println(fileEndAddresses[i]);
     }
 
 }
