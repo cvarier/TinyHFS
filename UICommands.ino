@@ -56,7 +56,7 @@ void stepOut() {
  *
  * @Param folderStartAddress the start address of the current folder
  */
-void displayFolderContent() {
+void displayFolderContents() {
 
     /*
      * Obtain and print the folders that belong to the current folder.
@@ -125,7 +125,7 @@ void parseCommand(char *command) {
      */
     if (!strcmp(command, print_contents)) {
 
-        displayFolderContent();
+        displayFolderContents();
 
     } else if (!strcmp(command, folder_step_in)) {
 

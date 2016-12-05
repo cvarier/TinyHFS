@@ -356,12 +356,12 @@ void deleteFile(short fileHeaderStartAddress) {
 
     short fileAddressesLocInHeader = fileHeaderStartAddress + FILE_NAME_SIZE;
 
-    byte fileStartAddressHighByte = getHighByte(readByte(EEPROM_ADDRESS, fileAddressesLocInHeader));
-    byte fileStartAddressLowByte = getLowByte(readByte(EEPROM_ADDRESS, fileAddressesLocInHeader + 1));
+    byte fileStartAddressHighByte = readByte(EEPROM_ADDRESS, fileAddressesLocInHeader);
+    byte fileStartAddressLowByte = readByte(EEPROM_ADDRESS, fileAddressesLocInHeader + 1);
     short fileStartAddress = assembleShort(fileStartAddressHighByte, fileStartAddressLowByte);
 
-    byte fileEndAddressHighByte = getLowByte(readByte(EEPROM_ADDRESS, fileAddressesLocInHeader + 2));
-    byte fileEndAddressLowByte = getLowByte(readByte(EEPROM_ADDRESS, fileAddressesLocInHeader + 3));
+    byte fileEndAddressHighByte = readByte(EEPROM_ADDRESS, fileAddressesLocInHeader + 2);
+    byte fileEndAddressLowByte = readByte(EEPROM_ADDRESS, fileAddressesLocInHeader + 3);
     short fileEndAddress = assembleShort(fileEndAddressHighByte, fileEndAddressLowByte);
 
     for (int i = fileStartAddress; i <= fileEndAddress; i++)
@@ -371,7 +371,6 @@ void deleteFile(short fileHeaderStartAddress) {
      * Check if the deleted file is located in the middle of the file array. If it is, then shift all the remaining
      * files over by one.
      */
-
     int mustShift = 0;
 
     for (int i = 0; i < fileCount; i++) {
@@ -476,7 +475,7 @@ void organizeMemory() {
 
     shiftHowMany = fileStartAddresses[0] - FILE_PARTITION_LOWER_BOUND;
 
-    if (!shiftHowMany)
+    if (shiftHowMany <= 0)
         needsShifting = 0;
 
     fileSize = fileEndAddresses[0] - fileStartAddresses[0] + 1;
@@ -518,7 +517,7 @@ void organizeMemory() {
 
         shiftHowMany = fileStartAddresses[i] - fileEndAddresses[i - 1] - 1;
 
-        if (!shiftHowMany)
+        if (shiftHowMany <= 0)
             needsShifting = 0;
 
         fileSize = fileEndAddresses[i] - fileStartAddresses[i] + 1;

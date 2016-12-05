@@ -41,9 +41,8 @@ void loop() {
             str_bytes[str_len - 1] = '\0';
 
             // Echo the user's input
-            Serial.println(">");
-            Serial.print(data);
-            Serial.println();
+            Serial.print("\n>");
+            Serial.println(data);
 
             parseCommand(str_bytes);
 
