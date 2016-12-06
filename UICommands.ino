@@ -423,7 +423,7 @@ void updateCurrentDirectory(short parentStartAddress) {
 /**
  * Function: printCurrentDirectory
  *
- * Prints the current working directory.
+ * Displays the current working directory.
  */
 void printCurrentDirectory() {
 
@@ -558,7 +558,7 @@ short getAddressFromPathName(String path, int atRoot, int steps, const char *nam
 /**
  * Function: printHelp
  *
- * Prints the list of commands and what they do.
+ * Displays the list of commands and what they do.
  */
 void printHelp() {
 
@@ -592,7 +592,7 @@ void printHelp() {
     Serial.println("   ->  Renames a specified folder\n");
 
     Serial.print(print_contents);
-    Serial.println("      ->  Display the current folder's contents");
+    Serial.println("      ->  Displays the current folder's contents");
     Serial.print(print_dir);
     Serial.println("     ->  Displays the current working directory");
     Serial.print(organize_mem);
