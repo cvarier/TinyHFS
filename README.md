@@ -57,20 +57,20 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
 
 * The commands that have been implemented successfully to date are the following:
 
-  * file [filename]    -> Creates new text file with the given file name - if file already exists, then throw an error
-  * read [filename]    -> Displays the contents of the specified file
-  * delfile [filename] -> Deletes the specified file
-  * rnfile [filename]  -> Renames the specified file <br><br>
-  * mkdir [foldername]  -> Creates new folder with the given folder name - if the folder already exists within the current directory, then throw an error
-  * in [foldername]     -> Steps into the specified folder, down a level
-  * out                 -> Steps up to the parent folder
-  * delfol [foldername] -> Deletes the specified folder
-  * rnfol [foldername]  -> Renames the specified folder <br><br>
-  * ls     -> Prints the current folder's contents
-  * pwd    -> Displays the current working directory
-  * omem   -> Organizes the memory by removing gaps between adjacent files
-  * help   -> Displays the list of commands
-  * format -> Clears the entire file system
+  * <i>file [filename]</i>    -> Creates new text file with the given file name - if file already exists, then throw an error
+  * <i>read [filename]</i>    -> Displays the contents of the specified file
+  * <i>delfile [filename]</i> -> Deletes the specified file
+  * <i>rnfile [filename]</i>  -> Renames the specified file <br><br>
+  * <i>mkdir [foldername]</i>  -> Creates new folder with the given folder name - if the folder already exists within the current directory, then throw an error
+  * <i>in [foldername]</i>     -> Steps into the specified folder, down a level
+  * <i>out</i>                 -> Steps up to the parent folder
+  * <i>delfol [foldername]</i> -> Deletes the specified folder
+  * <i>rnfol [foldername]</i>  -> Renames the specified folder <br><br>
+  * <i>ls</i>     -> Prints the current folder's contents
+  * <i>pwd</i>    -> Displays the current working directory
+  * <i>omem</i>   -> Organizes the memory by removing gaps between adjacent files
+  * <i>help</i>   -> Displays the list of commands
+  * <i>format</i> -> Clears the entire file system
 
 ## UI
 
