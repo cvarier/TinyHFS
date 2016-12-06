@@ -74,6 +74,11 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
 
 ## UI
 
+* The UI of the system is operated directly through the input of the Serial terminal
+* Users enter their commands delimited with a newline character and send them via Serial
+* The system parses the command and sends the output to the Serial terminal
+* Warnings and errors are provided as feedback (eg. if the user attempts to write a file that exceeds the available space)
+
 ## Authors
 
 Ben Upenieks and Chaitanya Varier
