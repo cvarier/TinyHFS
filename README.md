@@ -51,9 +51,9 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
 
 * The system will be represented in memory as follows:
 
-|'File Count Byte'|'       Folders     '|'                    Files                  '|'                File Headers              '|
-|:---------------:| ------------------- | ------------------------------------------- | ------------------------------------------ |
-|        0        | 1             1,000 | 1,001                                27,768 | 27,769                              32,766 |
+ File Count Byte | ------Folders------ |                     Files                   |                 File Headers              
+:---------------:| ------------------- | ------------------------------------------- | ------------------------------------------ 
+        0        | 1             1,000 | 1,001                                27,768 | 27,769                              32,766 
 
 ## Functions
 
