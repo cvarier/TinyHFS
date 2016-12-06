@@ -436,7 +436,7 @@ void deleteFolder(short folderStartAddress) {
 
 }
 
-// Formats (Clears) EEPROM by overwriting all data with the null character (takes approximately 3 minutes)
+// Clears the EEPROM by overwriting all data with the null character (takes approximately 144 seconds)
 void format() {
 
     double timeStart = millis() / 1000.0;
@@ -461,7 +461,7 @@ void format() {
  *
  *   When writing a file to the EEPROM, the file written is adjacent to the greatest address that is occupied.
  *   This creates an efficiency problem. When a file is deleted somewhere in the middle of occupied memory,
- *   free space is created, but cannot be accessed. This function corrects this by shifting every file to the
+ *   free space is created but cannot be accessed. This function corrects this by shifting every file to the
  *   left according to the number bytes of free space. This allows us to effectively make use of previously
  *   occupied space.
  */
@@ -560,6 +560,7 @@ void organizeMemory() {
 
 }
 
+// For use with qsort
 int compVals(const void* a, const void* b) {
 
     return (*(short *) a - *(short *) b);
@@ -578,7 +579,7 @@ byte getHighByte(short num) {
 
 }
 
-// Concatenates two bytes into a short
+// Concatenates a high and low byte into a short
 short assembleShort(byte high, byte low) {
 
     return (short) (low | high << 8);

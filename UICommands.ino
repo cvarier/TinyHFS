@@ -14,8 +14,7 @@ short currentContainedFileHeaderStartAddresses[maxFileHeaders] = { 0 };
  * Allows the user to step down a level in the file hierarchy into the specified folder. All files and folders
  * created will now be linked to this folder.
  *
- * @Param folderName the name of the folder to step into
- * 
+ * @Param folderStartAddress the start address of the folder to step into
  */
 void stepIn(short folderStartAddress) {
 
@@ -53,8 +52,6 @@ void stepOut() {
  * Function: displayFolderContents
  *
  * Displays the contents of the current folder via the 'ls' command.
- *
- * @Param folderStartAddress the start address of the current folder
  */
 void displayFolderContents() {
 
@@ -332,7 +329,8 @@ void parseCommand(char *command) {
 
         if (!destStartAddress) {
 
-            Serial.println("\nERROR: The file already exists in the specified path or the path does not exist.");
+            Serial.println(
+                "\nERROR: A file with the same name already exists in the specified path or the path does not exist.");
             return;
 
         }
@@ -489,6 +487,9 @@ String getDirectory(String directory, short currentAddress) {
  * @Param path the given path declared as E:/folder1/folder2/.../
  * @Param atRoot indicates the current path String is at root level; initially set to 1
  * @Param steps indicates the number of times stepIn has been called; initially set to 0
+ * @param name the name of the file or folder for copy/move; this is required for checking if a file or folder
+ * with same name already exists in the given path
+ * @param specifier can be either "file" or "folder, and indicates whether the given name is for a file or folder
  */
 short getAddressFromPathName(String path, int atRoot, int steps, const char *name, const char *specifier) {
 
@@ -555,7 +556,7 @@ short getAddressFromPathName(String path, int atRoot, int steps, const char *nam
 }
 
 /**
- * Function: print
+ * Function: printHelp
  *
  * Prints the list of commands and what they do.
  */
@@ -569,11 +570,11 @@ void printHelp() {
     Serial.print(file_delete);
     Serial.println(" ->  Deletes the specified file");
     /*Serial.print(file_copy);
-     Serial.println(" -> Copies a specified file to a specified path of the form E:/folder1/folder2/.../");
+     Serial.println(" ->  Copies a specified file to a specified path of the form E:/folder1/folder2/.../");
      Serial.print(file_move);
-     Serial.println("  -> Moves a specified file to a specified path of the form E:/folder1/folder2/.../");*/
+     Serial.println("  ->  Moves a specified file to a specified path of the form E:/folder1/folder2/.../");*/
     Serial.print(file_rename);
-    Serial.println("  -> Renames a specified file\n");
+    Serial.println("  ->  Renames a specified file\n");
 
     Serial.print(folder_create);
     Serial.println("   ->  Creates new folder with a given directory name");
@@ -584,11 +585,11 @@ void printHelp() {
     Serial.print(folder_delete);
     Serial.println("  ->  Deletes the specified folder");
     /*Serial.print(folder_copy);
-     Serial.println("  -> Copies a specified folder to a specified path of the form E:/folder1/folder2/.../");
+     Serial.println("  ->  Copies a specified folder to a specified path of the form E:/folder1/folder2/.../");
      Serial.print(folder_move);
-     Serial.println("   -> Moves a specified folder to a specified path of the form E:/folder1/folder2/.../");*/
+     Serial.println("   ->  Moves a specified folder to a specified path of the form E:/folder1/folder2/.../");*/
     Serial.print(folder_rename);
-    Serial.println("   -> Renames a specified folder\n");
+    Serial.println("   ->  Renames a specified folder\n");
 
     Serial.print(print_contents);
     Serial.println("      ->  Display the current folder's contents");

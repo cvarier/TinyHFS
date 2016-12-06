@@ -14,8 +14,6 @@
  */
 #define FILE_NAME_SIZE                      10
 #define FOLDER_NAME_SIZE                    10
-#define FILE_NAME_SIZE                      10
-#define FOLDER_NAME_SIZE                    10
 
 /***************************
  *     Partition Bounds    *
