@@ -13,14 +13,14 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
 * Files are stored at the end of the EEPROM
 * Every file contains a header (not visible to user) with the following attributes (in order as stored in the EEPROM):
 
-..* File name
-..* File start address
-..* File end address
-..* Parent folder start address
+⋅⋅* File name
+⋅⋅* File start address
+⋅⋅* File end address
+⋅⋅* Parent folder start address
 
 * Each of the above attributes occupy 2 bytes (a short int) in the EEPROM
 * The name of the file is restricted to 10 characters, but can be modified
-* The total size of a file header is [10 + (2 * 3)] bytes = <b>16 bytes</b>
+* The total size of a file header is <i>[10 + (2 * 3)]</i> bytes = <b>16 bytes</b>
 
 ## Folders
 
@@ -29,13 +29,13 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
 * The Hierarchy is modeled as top-down and represented as follows: (E:/folder1/folder2/../file1.txt), where E:/ represents the root directory
 * Every folder contains the following attributes (in order as stored in the EEPROM):
 
-..* Folder name
-..* Folder start address
-..* Parent folder start address
+⋅⋅* Folder name
+⋅⋅* Folder start address
+⋅⋅* Parent folder start address
 
 * Each of the above attributes occupy 2 bytes (a short int) in the EEPROM
 * The name of the folder is restricted to 10 characters, but can be modified
-* The total size of a folder is [10 + (2 * 2)] = <b>14 bytes</b>
+* The total size of a folder is <i>[10 + (2 * 2)]</i> = <b>14 bytes</b>
 
 ## Partitions
 
