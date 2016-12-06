@@ -46,13 +46,13 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
 * 1,000 bytes are allocated to the folder partition
 * This will allow us to store a maximum of 71 folders and 249 file headers in all cases
 * If on average a file is composed of 300 bytes, the system can store 92 files
-* The first byte of EEPROM is used to store the number of files in the system for utility
-* The above byte is accessed as a state variable, and is referred to as the 'file count byte'
+* The number of files can never exceed the number of file headers (the upper limit on file headers applies to files as well)
+* The first byte of EEPROM is used to store the number of files in the system for utility - this byte is accessed as a state variable, and is referred to as the 'file count byte'
 * The system will be represented in memory with the following addresses:
 
  File Count Byte| ---- Folders ---- | --------------- Files --------------- | --------- File Headers ---------
  :-------------:| ----------------- | ------------------------------------- | -------------------------------- 
-        0       | 1 --------- 1,000 | 1,001 ------------------------ 27,768 | 27,769 ------------------ 32,766 
+        0       | 1 --------- 1,000 | 1,001 ------------------------ 28,768 | 28,769 ------------------ 32,766 
 
 ## Commands
 
