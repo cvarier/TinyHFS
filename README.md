@@ -13,10 +13,10 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
 * Files are stored at the end of the EEPROM
 * Every file contains a header (not visible to user) with the following attributes (in order as stored in the EEPROM):
 
-⋅⋅* Unordered sub-list
-   File start address
-   File end address
-   Parent folder start address
+   * Unordered sub-list
+   * File start address
+   * File end address
+   * Parent folder start address
 
 * Each of the above attributes occupy 2 bytes (a short int) in the EEPROM
 * The name of the file is restricted to 10 characters, but can be modified
