@@ -53,7 +53,49 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
  :-------------:| ----------------- | ------------------------------------- | -------------------------------- 
         0       | 1 --------- 1,000 | 1,001 ------------------------ 27,768 | 27,769 ------------------ 32,766 
 
-## Functions
+## Commands
+
+* The commands that have been implemented successfully to date are the following:
+
+  * file [filename] -> Creates new text file with the given file name. If file already exists, then throw an error.
+  * read [filename] -> Displays the contents of the specified file.
+  * delfile -> Deletes the specified file
+  * rnfile [filename] -> Renames the specified file.
+
+ls -> Prints the current folder's contents
+
+
+
+mkdir [directory_name] -> Creates new folder with the given directory name. If the folder already exists within the current directory, then throw an error.
+
+in [foldername] -> Steps into the specified folder, down a level.
+
+out -> Steps up to the parent folder.
+
+
+
+
+
+rnfol [foldername] -> Renames the specified folder.
+
+format -> Clears the entire file system
+
+pwd -> Displays the current working directory
+
+delfol -> Deletes the specified folder
+
+cpyfile [filename] [pathname] -> Copies the specified file to the specified path. If file already exists, then prompt user if they wish to overwrite with y/n prompt.
+
+cpyfol [foldername] [pathname] -> Copies the specified folder to the specified path. If folder already exists, then prompt user if they wish to overwrite with y/n prompt.
+
+mvfile [filename] [pathname] -> Moves the specified file to the specified path. If file already exists, then prompt user if they wish to overwrite with y/n prompt.
+
+mvfol [foldername] [pathname] -> Moves the specified folder to the specified path. If folder already exists, then prompt user if they wish to overwrite with y/n prompt.
+
+omem - Organizes the memory by removing gaps between adjacent files
+
+
+
 
 ## UI
 
