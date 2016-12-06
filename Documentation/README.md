@@ -67,7 +67,7 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
   * <i>out</i>                 -> Steps up to the parent folder
   * <i>delfol [foldername]</i> -> Deletes the specified folder
   * <i>rnfol [foldername]</i>  -> Renames the specified folder <br><br>
-  * <i>ls</i>     -> Prints the current folder's contents
+  * <i>ls</i>     -> Displays the current folder's contents
   * <i>pwd</i>    -> Displays the current working directory
   * <i>omem</i>   -> Organizes the memory by removing gaps between adjacent files
   * <i>help</i>   -> Displays the list of commands
