@@ -60,12 +60,12 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
   * file [filename]    -> Creates new text file with the given file name - if file already exists, then throw an error
   * read [filename]    -> Displays the contents of the specified file
   * delfile [filename] -> Deletes the specified file
-  * rnfile [filename]  -> Renames the specified file <br>
+  * rnfile [filename]  -> Renames the specified file <br><br>
   * mkdir [foldername]  -> Creates new folder with the given folder name - if the folder already exists within the current directory, then throw an error
   * in [foldername]     -> Steps into the specified folder, down a level
   * out                 -> Steps up to the parent folder
   * delfol [foldername] -> Deletes the specified folder
-  * rnfol [foldername]  -> Renames the specified folder <br>
+  * rnfol [foldername]  -> Renames the specified folder <br><br>
   * ls     -> Prints the current folder's contents
   * pwd    -> Displays the current working directory
   * omem   -> Organizes the memory by removing gaps between adjacent files
