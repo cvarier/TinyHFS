@@ -27,7 +27,7 @@ Hierarchical file system implemented for the Orbit Booster Pack in conjunction w
 * Folders are modeled as headers within the EEPROM
 * Folders are found at the start of the EEPROM
 * The Hierarchy is modeled as top-down and represented as follows: (E:/folder1/folder2/../file1.txt), where E:/ represents the root directory
-* The root folder's address is 32,767 - it is a hypthetical folder since it is outside of the folder partition
+* The root folder's address is 32,767 - it is a hypothetical folder since it is outside of the folder partition
 * Every folder contains the following attributes (in order as stored in the EEPROM):
 
   * Folder name
